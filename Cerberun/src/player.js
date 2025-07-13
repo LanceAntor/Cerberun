@@ -36,14 +36,14 @@ export class Player {
         this.currentState.handleInput(input);
         // horizontal movement
         this.x += this.speed;
-        if(input.includes('ArrowRight') && this.currentState !== this.states[6]) this.speed = this.maxSpeed;
-        else if(input.includes('ArrowLeft')  && this.currentState !== this.states[6]) this.speed = -this.maxSpeed;
+        if(input.includes('d') && this.currentState !== this.states[6]) this.speed = this.maxSpeed;
+        else if(input.includes('a')  && this.currentState !== this.states[6]) this.speed = -this.maxSpeed;
         else this.speed = 0;
         // horizontal boundaries
         if(this.x < 0) this.x = 0; // prevent going off the left edge
         if(this.x > this.game.width - this.width) this.x = this.game.width - this.width; // prevent going off the right edge
         // vertical movement
-        //if(input.includes('ArrowUp') && this.onGround()) this.vy -= 20; // jump height
+        //if(input.includes('w') && this.onGround()) this.vy -= 20; // jump height
         this.y += this.vy;
         if(!this.onGround()) this.vy += this.weight;
         else this.vy = 0; 

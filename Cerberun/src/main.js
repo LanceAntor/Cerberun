@@ -121,7 +121,7 @@ window.addEventListener('load', function(){
         game.enemyTimer = 0;
         game.player.x = 0;
         game.player.y = game.height - game.player.height - game.groundMargin;
-        game.player.currentState = game.player.states[0];
+        game.player.currentState = game.player.states[1]; // Set to running state
         game.player.currentState.enter();
         gameStarted = true;
     });
@@ -145,7 +145,7 @@ window.addEventListener('load', function(){
             game.floatingMessages = [];
             game.player.x = 0;
             game.player.y = game.height - game.player.height - game.groundMargin;
-            game.player.currentState = game.player.states[0];
+            game.player.currentState = game.player.states[1]; // Set to running state
             game.player.currentState.enter();
             gameOverShown = false;
             gameStarted = true;

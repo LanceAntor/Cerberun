@@ -5,8 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Javascript Game</title>
     <link rel="stylesheet" href="./src/style.css">
+    
 </head>
 <body>
+    <!-- Start Screen Modal -->
+    <div id="startModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1>CERBERUN</h1>
+            </div>
+            <div class="modal-body">
+                <div class="controls-section">
+                    <h2>Controls</h2>
+                    <div class="control-group">
+                        <div class="key-layout">
+                            <div class="key-row">
+                                <div class="key">W</div>
+                            </div>
+                            <div class="key-row">
+                                <div class="key">A</div>
+                                <div class="key">S</div>
+                                <div class="key">D</div>
+                            </div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="description">Movements</div>
+                    </div>
+                    <div class="control-group">
+                        <div class="key large-key">Enter</div>
+                        <div class="arrow">→</div>
+                        <div class="description">Roll Attack</div>
+                    </div>
+                </div>
+                <div class="separator"></div>
+                <div class="howto-section">
+                    <h2>How to play</h2>
+                    <ul>
+                        <li>Use WASD keys to move your character</li>
+                        <li>Press Enter to perform a roll attack</li>
+                        <li>Avoid enemies and obstacles</li>
+                        <li>Survive as long as possible</li>
+                        <li>Score points by defeating enemies</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="startButton" class="start-btn">START</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal hidden">
+        <div class="modal-content game-over-content">
+            <div class="modal-header">
+                <h1>GAME OVER</h1>
+            </div>
+            <div class="game-over-body">
+                <div class="score-display">
+                    <h2>Final Score</h2>
+                    <div class="score-value" id="finalScore">0</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="playAgainButton" class="play-again-btn">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
     <canvas id="canvas1"></canvas>
 
     <img id="player" src="./src/assets/player_black.png">

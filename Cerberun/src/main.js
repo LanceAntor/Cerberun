@@ -7,14 +7,92 @@ import { UI } from './UI.js';
 window.addEventListener('load', function(){
     const canvas = document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
-    canvas.width = 900;
-    canvas.height = 500;
+    const startModal = document.getElementById('startModal');
+    const startButton = document.getElementById('startButton');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const playAgainButton = document.getElementById('playAgainButton');
+    const finalScore = document.getElementById('finalScore');
+    
+    let gameStarted = false;
+    
+    // Modal functionality
+    startButton.addEventListener('click', function() {
+        startModal.classList.add('hidden');
+        gameStarted = true;
+        // Game loop is already running, just enable game logic updates
+    });
+    
+    // Play Again functionality
+    playAgainButton.addEventListener('click', function() {
+        gameOverModal.classList.add('hidden');
+        restartGame();
+    });
+    
+    // Restart game function
+    function restartGame() {
+        if (game) {
+            // Reset game state
+            game.gameOver = false;
+            game.score = 0;
+            game.time = 0;
+            game.lives = 5;
+            game.enemies = [];
+            game.particles = [];
+            game.collisions = [];
+            game.floatingMessages = [];
+            game.player.x = 0;
+            game.player.y = game.height - game.player.height - game.groundMargin;
+            game.player.currentState = game.player.states[0];
+            game.player.currentState.enter();
+            
+            // Reset flags
+            gameOverShown = false;
+            gameStarted = true;
+        }
+    }
+    
+    // Show game over modal function
+    function showGameOverModal() {
+        // Update modal with final score
+        finalScore.textContent = game.score;
+        
+        // Show the modal
+        gameOverModal.classList.remove('hidden');
+    }
+    
+    // Restart functionality (keep R key for quick restart)
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'r' || e.key === 'R') {
+            if (game && game.gameOver) {
+                gameOverModal.classList.add('hidden');
+                restartGame();
+            }
+        }
+    });
+    
+    // Make canvas fullscreen
+    let game; // Declare game variable
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // Update game dimensions
+        if (game) {
+            game.resize(canvas.width, canvas.height);
+        }
+    }
+    
+    // Initial resize
+    resizeCanvas();
+    
+    // Resize canvas when window is resized
+    window.addEventListener('resize', resizeCanvas);
     
     class Game{
         constructor(width,height){
             this.width = width;
             this.height = height;
-            this.groundMargin = 80;
+            this.groundMargin = Math.max(80, height * 0.16); 
             this.background = new Background(this);
             this.speed = 0;
             this.maxSpeed = 3;
@@ -33,11 +111,22 @@ window.addEventListener('load', function(){
             this.fontColor = 'black';
             this.time = 0;
             this.maxTime = 30000; // 30 seconds
-            this.winningScore = 40; // score to win
+            this.winningScore = 40; 
             this.gameOver = false;
             this.lives = 5;
             this.player.currentState = this.player.states[0];
             this.player.currentState.enter();
+        }
+        
+        // Add method to resize game when window resizes
+        resize(width, height) {
+            this.width = width;
+            this.height = height;
+            this.groundMargin = Math.max(80, height * 0.16);
+            // Update player position to stay on ground
+            this.player.y = this.height - this.player.height - this.groundMargin;
+            // Update background size
+            this.background.resize();
         }
         update(deltaTime){
             this.time += deltaTime;
@@ -93,15 +182,40 @@ window.addEventListener('load', function(){
             this.enemies.push(new FlyingEnemy(this));
         }   
     }
-    const game = new Game(canvas.width, canvas.height);
+    
+    // Initialize game after class definition
+    game = new Game(canvas.width, canvas.height);
+    console.log('Game initialized with dimensions:', canvas.width, 'x', canvas.height);
+    
     let lastTime = 0;
+    let gameOverShown = false;
+    
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        game.update(deltaTime);
+        
+        // Add a fallback background color to see if the game is running
+        ctx.fillStyle = '#87CEEB'; // Sky blue background as fallback
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        if (gameStarted) {
+            game.update(deltaTime);
+            
+            // Check if game just ended and show modal
+            if (game.gameOver && !gameOverShown) {
+                gameOverShown = true;
+                setTimeout(() => {
+                    showGameOverModal();
+                }, 1000); // Small delay to see the final game state
+            }
+        }
         game.draw(ctx);
-        if(!game.gameOver) requestAnimationFrame(animate);
+        
+        // Continue animation loop regardless of game state for background effect
+        requestAnimationFrame(animate);
     }
+    
+    // Start the animation loop immediately for background effect
     animate(0);
 });

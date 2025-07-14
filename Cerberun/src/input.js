@@ -10,7 +10,9 @@ export class InputHandler{
                     e.key === 'Enter'
                 ) && this.keys.indexOf(e.key) === -1){
                 this.keys.push(e.key);
-            } else if(e.key === 'p') this.game.debug = !this.game.debug; // Changed debug key to 'p'
+            } 
+            // else if(e.key === 'p') this.game.debug = !this.game.debug; // DEBUG TOGGLE - COMMENTED OUT
+            // else if(e.key === 'f' || e.key === 'F') this.toggleFullscreen(); // Fullscreen toggle - COMMENTED OUT
         });
         window.addEventListener('keyup', e => {
             if(   e.key === 's' ||
@@ -23,4 +25,18 @@ export class InputHandler{
             }
         });
     }
+    
+    // COMMENTED OUT - Fullscreen toggle functionality (can be re-enabled later)
+    /*
+    toggleFullscreen() {
+        const canvas = document.getElementById('canvas1');
+        if (!document.fullscreenElement) {
+            canvas.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+    */
 }

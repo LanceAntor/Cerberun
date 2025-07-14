@@ -60,7 +60,7 @@ export class Jumping extends State {
         super('JUMPING',game);
     }
     enter() {
-        if(this.game.player.onGround()) this.game.player.vy -= 27;
+        if(this.game.player.onGround()) this.game.player.vy -= 32;
         this.game.player.frameX = 0;
         this.game.player.maxFrame = 6; 
         this.game.player.frameY = 1;
@@ -80,7 +80,7 @@ export class Falling extends State {
         super('FALLING', game);
     }
     enter() {
-        if(this.game.player.onGround()) this.game.player.vy -= 30;
+        if(this.game.player.onGround()) this.game.player.vy -= 32;
         this.game.player.frameX = 0;
         this.game.player.maxFrame = 6; 
         this.game.player.frameY = 2;
@@ -112,7 +112,7 @@ export class Rolling extends State {
             this.game.player.setState(states.FALLING, 1);
         } else if(input.includes('Enter') && input.includes('w') && this.game.player.
         onGround()){
-            this.game.player.vy -= 27; // jump while rolling
+            this.game.player.vy -= 32; // jump while rolling
         }
         else if(input.includes('s') && !
         this.game.player.onGround()){

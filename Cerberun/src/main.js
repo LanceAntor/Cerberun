@@ -11,25 +11,33 @@ window.addEventListener('load', function(){
     const startButton = document.getElementById('startButton');
     const gameOverModal = document.getElementById('gameOverModal');
     const playAgainButton = document.getElementById('playAgainButton');
+    const settingsModal = document.getElementById('settingsModal');
+    const continueButton = document.getElementById('continueButton');
+    const musicToggle = document.getElementById('musicToggle');
+    const soundToggle = document.getElementById('soundToggle');
     const finalScore = document.getElementById('finalScore');
     const backgroundMusic = document.getElementById('backgroundMusic');
     
     let gameStarted = false;
+    let gamePaused = false;
     let audioInitialized = false;
+    let musicEnabled = true;
+    let soundEnabled = true;
     
-    // Initialize audio function that handles user interaction requirement
     function initializeAudio() {
         if (!audioInitialized) {
             backgroundMusic.volume = 0.1;
-            startBackgroundMusic();
+            if (musicEnabled) {
+                startBackgroundMusic();
+            }
             audioInitialized = true;
         }
     }
     
-    // Start background music when page loads
     function startBackgroundMusic() {
-        backgroundMusic.currentTime = 0; // Reset to beginning
-        backgroundMusic.volume = 0.1; // Set volume to 10%
+        if (!musicEnabled) return;
+        backgroundMusic.currentTime = 0; 
+        backgroundMusic.volume = 0.1; 
         const playPromise = backgroundMusic.play();
         
         if (playPromise !== undefined) {
@@ -39,6 +47,49 @@ window.addEventListener('load', function(){
         }
     }
     
+    function stopBackgroundMusic() {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+    }
+    
+    // Settings Modal Functions
+    function openSettingsModal() {
+        if (gameStarted && !gamePaused) {
+            gamePaused = true;
+            settingsModal.classList.remove('hidden');
+            updateToggleStates();
+        }
+    }
+    
+    function closeSettingsModal() {
+        settingsModal.classList.add('hidden');
+        gamePaused = false;
+    }
+    
+    function updateToggleStates() {
+        musicToggle.classList.toggle('active', musicEnabled);
+        soundToggle.classList.toggle('active', soundEnabled);
+    }
+    
+    // Settings Event Listeners
+    continueButton.addEventListener('click', closeSettingsModal);
+    
+    musicToggle.addEventListener('click', function() {
+        musicEnabled = !musicEnabled;
+        updateToggleStates();
+        
+        if (musicEnabled && audioInitialized) {
+            startBackgroundMusic();
+        } else {
+            stopBackgroundMusic();
+        }
+    });
+    
+    soundToggle.addEventListener('click', function() {
+        soundEnabled = !soundEnabled;
+        updateToggleStates();
+    });
+    
     // Add click event listeners to initialize audio on first user interaction
     document.addEventListener('click', initializeAudio, { once: true });
     document.addEventListener('keydown', initializeAudio, { once: true });
@@ -46,6 +97,9 @@ window.addEventListener('load', function(){
     
     // Try to start music immediately (will work if autoplay is allowed)
     startBackgroundMusic();
+    
+    // Initialize toggle states
+    updateToggleStates();
     
     // Modal functionality
     startButton.addEventListener('click', function() {
@@ -104,9 +158,16 @@ window.addEventListener('load', function(){
         gameOverModal.classList.remove('hidden');
     }
     
-    // Restart functionality (keep R key for quick restart)
+    // Restart functionality and ESC key for settings
     window.addEventListener('keydown', function(e) {
-        if (e.key === 'r' || e.key === 'R') {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            if (gameStarted && !gamePaused && !game.gameOver) {
+                openSettingsModal();
+            } else if (gamePaused) {
+                closeSettingsModal();
+            }
+        } else if (e.key === 'r' || e.key === 'R') {
             if (game && game.gameOver) {
                 gameOverModal.classList.add('hidden');
                 restartGame();
@@ -160,6 +221,11 @@ window.addEventListener('load', function(){
             this.lives = 5;
             this.player.currentState = this.player.states[0];
             this.player.currentState.enter();
+        }
+        
+        // Method to check if sound effects are enabled
+        isSoundEnabled() {
+            return soundEnabled;
         }
         
         // Add method to resize game when window resizes
@@ -264,10 +330,10 @@ window.addEventListener('load', function(){
         
         game.background.update();
         
-        // Always draw the game background and player, but only update logic if started
+        // Always draw the game background and player, but only update logic if started and not paused
         game.draw(ctx);
         
-        if (gameStarted) {
+        if (gameStarted && !gamePaused) {
             game.update(deltaTime);
             
             // Check if game just ended and show modal

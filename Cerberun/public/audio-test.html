@@ -41,7 +41,6 @@
                 .catch(e => status.innerHTML += `<p>❌ Collision sound failed: ${e.message}</p>`);
         });
 
-        // Check if audio files exist
         fetch('../src/assets/sound/background_music.mp3')
             .then(response => {
                 if (response.ok) {

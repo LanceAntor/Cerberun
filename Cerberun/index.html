@@ -73,6 +73,32 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-content settings-content">
+            <div class="modal-header">
+                <h1>SETTINGS</h1>
+            </div>
+            <div class="settings-body">
+                <div class="setting-item">
+                    <span class="setting-label">Music</span>
+                    <div class="toggle-switch" id="musicToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Sound Effects</span>
+                    <div class="toggle-switch" id="soundToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="continueButton" class="continue-btn">CONTINUE</button>
+            </div>
+        </div>
+    </div>
+
     <canvas id="canvas1"></canvas>
 
     <img id="player" src="./src/assets/player_black.png">

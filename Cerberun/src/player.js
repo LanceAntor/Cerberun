@@ -31,6 +31,7 @@ export class Player {
         new Rolling(this.game), new Diving(this.game), new Hit(this.game)];
         this.currentState = null;
         this.sound = document.getElementById('collisionSound');
+        this.damageSound = document.getElementById('damageSound');
     }
     update(input, deltaTime) {
         this.checkCollision();
@@ -84,21 +85,26 @@ export class Player {
                 enemy.y + enemy.height > this.y
             ){
                 // collision detected
-                // Play collision sound if sound effects are enabled
-                if (this.game.isSoundEnabled()) {
-                    const collisionSound = this.sound.cloneNode(true);
-                    collisionSound.volume = 0.5; // Adjust volume as needed
-                    collisionSound.play().catch(e => console.log('Audio play failed:', e));
-                }
-                
                 enemy.markedForDeletion = true;
                 this.game.collisions.push(new CollisionAnimation(this.game, enemy.x + enemy.width * 0.5,
                 enemy.y + enemy.height * 0.5
                 ));
                 if(this.currentState === this.states[4] || this.currentState === this.states[5]){
+                    // Player successfully defeated enemy - play collision sound
+                    if (this.game.isSoundEnabled()) {
+                        const collisionSound = this.sound.cloneNode(true);
+                        collisionSound.volume = 0.5;
+                        collisionSound.play().catch(e => console.log('Collision audio play failed:', e));
+                    }
                     this.game.score++;
                     this.game.floatingMessages.push(new FloatingMessages('+1', enemy.x, enemy.y, 150, 50));
                 } else {
+                    // Player took damage - play damage sound only
+                    if(this.game.isSoundEnabled()) {
+                        const playerDamageSound = this.damageSound.cloneNode(true);
+                        playerDamageSound.volume = 0.6;
+                        playerDamageSound.play().catch(e => console.log('Damage audio play failed:', e));
+                    }
                     this.setState(6, 0);
                     this.game.score -= 5;
                     this.game.lives--;

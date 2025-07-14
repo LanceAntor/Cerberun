@@ -12,12 +12,28 @@ window.addEventListener('load', function(){
     const gameOverModal = document.getElementById('gameOverModal');
     const playAgainButton = document.getElementById('playAgainButton');
     const finalScore = document.getElementById('finalScore');
+    const backgroundMusic = document.getElementById('backgroundMusic');
     
     let gameStarted = false;
+    
+    // Start background music when page loads
+    function startBackgroundMusic() {
+        backgroundMusic.currentTime = 0; // Reset to beginning
+        backgroundMusic.volume = 0.1; // Set volume to 30%
+        backgroundMusic.play().catch(e => {
+            // Handle autoplay restrictions - music will start when user interacts
+            console.log('Autoplay prevented, music will start on user interaction');
+        });
+    }
+    
+    // Start music immediately
+    startBackgroundMusic();
     
     // Modal functionality
     startButton.addEventListener('click', function() {
         startModal.classList.add('hidden');
+        // Reset and restart background music
+        startBackgroundMusic();
         // Reset game state for fresh start
         game.enemies = [];
         game.particles = [];
@@ -33,19 +49,17 @@ window.addEventListener('load', function(){
         game.player.currentState = game.player.states[0];
         game.player.currentState.enter();
         gameStarted = true;
-        // Game loop is already running, just enable game logic updates
     });
     
-    // Play Again functionality
     playAgainButton.addEventListener('click', function() {
         gameOverModal.classList.add('hidden');
+        // Reset and restart background music
+        startBackgroundMusic();
         restartGame();
     });
     
-    // Restart game function
     function restartGame() {
         if (game) {
-            // Reset game state
             game.gameOver = false;
             game.score = 0;
             game.time = 0;
@@ -58,19 +72,14 @@ window.addEventListener('load', function(){
             game.player.y = game.height - game.player.height - game.groundMargin;
             game.player.currentState = game.player.states[0];
             game.player.currentState.enter();
-            
-            // Reset flags
             gameOverShown = false;
             gameStarted = true;
         }
     }
     
-    // Show game over modal function
     function showGameOverModal() {
-        // Update modal with final score
         finalScore.textContent = game.score;
         
-        // Show the modal
         gameOverModal.classList.remove('hidden');
     }
     
@@ -119,7 +128,7 @@ window.addEventListener('load', function(){
             this.floatingMessages = [];
             this.maxParticles = 50;
             this.enemyTimer = 0;
-            this.enemyInterval = 1000;
+            this.enemyInterval = 500;
             this.debug = false;
             this.score = 0;
             this.fontColor = 'black';

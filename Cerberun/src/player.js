@@ -30,6 +30,7 @@ export class Player {
         this.states = [new Sitting(this.game), new Running(this.game), new Jumping(this.game), new Falling(this.game),
         new Rolling(this.game), new Diving(this.game), new Hit(this.game)];
         this.currentState = null;
+        this.sound = document.getElementById('collisionSound');
     }
     update(input, deltaTime) {
         this.checkCollision();
@@ -83,6 +84,11 @@ export class Player {
                 enemy.y + enemy.height > this.y
             ){
                 // collision detected
+                // Clone the audio element to allow multiple simultaneous sounds
+                const collisionSound = this.sound.cloneNode(true);
+                collisionSound.volume = 0.5; // Adjust volume as needed
+                collisionSound.play().catch(e => console.log('Audio play failed:', e));
+                
                 enemy.markedForDeletion = true;
                 this.game.collisions.push(new CollisionAnimation(this.game, enemy.x + enemy.width * 0.5,
                 enemy.y + enemy.height * 0.5

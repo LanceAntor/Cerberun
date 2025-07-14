@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Test</title>
+</head>
+<body>
+    <h1>Audio Test Page</h1>
+    <button id="testMusic">Test Background Music</button>
+    <button id="testSound">Test Collision Sound</button>
+    <div id="status"></div>
+
+    <audio id="testBgMusic" loop>
+        <source src="../src/assets/sound/background_music.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="testCollisionSound">
+        <source src="../src/assets/sound/boom.wav" type="audio/wav">
+    </audio>
+
+    <script>
+        const status = document.getElementById('status');
+        const testMusic = document.getElementById('testMusic');
+        const testSound = document.getElementById('testSound');
+        const bgMusic = document.getElementById('testBgMusic');
+        const collisionSound = document.getElementById('testCollisionSound');
+
+        testMusic.addEventListener('click', () => {
+            bgMusic.volume = 0.1;
+            bgMusic.play()
+                .then(() => status.innerHTML += '<p>✅ Background music playing</p>')
+                .catch(e => status.innerHTML += `<p>❌ Background music failed: ${e.message}</p>`);
+        });
+
+        testSound.addEventListener('click', () => {
+            collisionSound.volume = 0.5;
+            collisionSound.currentTime = 0;
+            collisionSound.play()
+                .then(() => status.innerHTML += '<p>✅ Collision sound playing</p>')
+                .catch(e => status.innerHTML += `<p>❌ Collision sound failed: ${e.message}</p>`);
+        });
+
+        // Check if audio files exist
+        fetch('../src/assets/sound/background_music.mp3')
+            .then(response => {
+                if (response.ok) {
+                    status.innerHTML += '<p>✅ Background music file found</p>';
+                } else {
+                    status.innerHTML += '<p>❌ Background music file not found</p>';
+                }
+            })
+            .catch(e => status.innerHTML += '<p>❌ Error checking background music file</p>');
+
+        fetch('../src/assets/sound/boom.wav')
+            .then(response => {
+                if (response.ok) {
+                    status.innerHTML += '<p>✅ Collision sound file found</p>';
+                } else {
+                    status.innerHTML += '<p>❌ Collision sound file not found</p>';
+                }
+            })
+            .catch(e => status.innerHTML += '<p>❌ Error checking collision sound file</p>');
+    </script>
+</body>
+</html>

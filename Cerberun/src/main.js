@@ -15,22 +15,43 @@ window.addEventListener('load', function(){
     const backgroundMusic = document.getElementById('backgroundMusic');
     
     let gameStarted = false;
+    let audioInitialized = false;
+    
+    // Initialize audio function that handles user interaction requirement
+    function initializeAudio() {
+        if (!audioInitialized) {
+            backgroundMusic.volume = 0.1;
+            startBackgroundMusic();
+            audioInitialized = true;
+        }
+    }
     
     // Start background music when page loads
     function startBackgroundMusic() {
         backgroundMusic.currentTime = 0; // Reset to beginning
-        backgroundMusic.volume = 0.1; // Set volume to 30%
-        backgroundMusic.play().catch(e => {
-            // Handle autoplay restrictions - music will start when user interacts
-            console.log('Autoplay prevented, music will start on user interaction');
-        });
+        backgroundMusic.volume = 0.1; // Set volume to 10%
+        const playPromise = backgroundMusic.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                console.log('Autoplay prevented, music will start on user interaction');
+            });
+        }
     }
     
-    // Start music immediately
+    // Add click event listeners to initialize audio on first user interaction
+    document.addEventListener('click', initializeAudio, { once: true });
+    document.addEventListener('keydown', initializeAudio, { once: true });
+    document.addEventListener('touchstart', initializeAudio, { once: true });
+    
+    // Try to start music immediately (will work if autoplay is allowed)
     startBackgroundMusic();
     
     // Modal functionality
     startButton.addEventListener('click', function() {
+        // Ensure audio is initialized on user interaction
+        initializeAudio();
+        
         startModal.classList.add('hidden');
         // Reset and restart background music
         startBackgroundMusic();

@@ -26,10 +26,10 @@ export class Sitting extends State {
         this.game.player.frameY = 5;
         this.game.player.maxFrame = 4; 
     }
-    handleInput(input){
+    handleInput(input, deltaTime){
         if(input.includes('a') || input.includes('d')){
             this.game.player.setState(states.RUNNING, 1);
-        } else if(input.includes('Enter')){
+        } else if(input.includes('Enter') && this.game.canStartRollAttack()){
             this.game.player.setState(states.ROLLING, 1);
         }
     }
@@ -43,14 +43,14 @@ export class Running extends State {
         this.game.player.frameY = 3;
         this.game.player.maxFrame = 8;
     }
-    handleInput(input){
+    handleInput(input, deltaTime){
         this.game.particles.unshift(new Dust(this.game, this.game.player.x + this.game.player.width * 0.6
         , this.game.player.y + this.game.player.height));
         if(input.includes('s')){
             this.game.player.setState(states.SITTING, 0);
         } else if(input.includes('w')){
             this.game.player.setState(states.JUMPING, 1);
-        } else if(input.includes('Enter')){
+        } else if(input.includes('Enter') && this.game.canStartRollAttack()){
             this.game.player.setState(states.ROLLING, 2);
         }
     }
@@ -65,10 +65,10 @@ export class Jumping extends State {
         this.game.player.maxFrame = 6; 
         this.game.player.frameY = 1;
     }
-    handleInput(input){
+    handleInput(input, deltaTime){
         if(this.game.player.vy > this.game.player.weight){
             this.game.player.setState(states.FALLING, 1);
-        } else if(input.includes('Enter')){
+        } else if(input.includes('Enter') && this.game.canStartRollAttack()){
             this.game.player.setState(states.ROLLING, 2);
         } else if(input.includes('s')){
             this.game.player.setState(states.DIVING, 0);
@@ -85,7 +85,7 @@ export class Falling extends State {
         this.game.player.maxFrame = 6; 
         this.game.player.frameY = 2;
     }
-    handleInput(input){
+    handleInput(input, deltaTime){
         if(this.game.player.onGround()){
             this.game.player.setState(states.RUNNING, 1);
         }else if(input.includes('s')){
@@ -103,9 +103,24 @@ export class Rolling extends State {
         this.game.player.maxFrame = 6; 
         this.game.player.frameY = 6;
     }
-    handleInput(input){
+    handleInput(input, deltaTime){
         this.game.particles.unshift(new Fire(this.game, this.game.player.x + this.game.player.width * 0.5
         , this.game.player.y + this.game.player.height * 0.5));
+        
+        // Drain energy while rolling
+        if (input.includes('Enter')) {
+            const hasEnergy = this.game.drainEnergyForRoll(deltaTime);
+            if (!hasEnergy) {
+                // Out of energy, stop rolling
+                if (this.game.player.onGround()) {
+                    this.game.player.setState(states.RUNNING, 1);
+                } else {
+                    this.game.player.setState(states.FALLING, 1);
+                }
+                return;
+            }
+        }
+        
         if(!input.includes('Enter') && this.game.player.onGround()){
             this.game.player.setState(states.RUNNING, 1);
         } else if(!input.includes('Enter') && !this.game.player.onGround()){
@@ -131,7 +146,7 @@ export class Diving extends State {
         this.game.player.frameY = 6;
         this.game.player.vy = 15; // set vertical speed for diving
     }
-    handleInput(input){
+    handleInput(input, deltaTime){
         this.game.particles.unshift(new Fire(this.game, this.game.player.x + this.game.player.width * 0.5
         , this.game.player.y + this.game.player.height * 0.5));
         if(this.game.player.onGround()){
@@ -140,7 +155,7 @@ export class Diving extends State {
                 this.game.particles.unshift(new Splash(this.game, this.game.player.x + this.game.player.width * 0.5, 
                 this.game.player.y + this.game.player.height * 0.5));
             }
-        } else if(input.includes('Enter') && this.game.player.onGround()){
+        } else if(input.includes('Enter') && this.game.player.onGround() && this.game.canStartRollAttack()){
             this.game.player.setState(states.ROLLING, 2);
         } 
     }
@@ -155,7 +170,7 @@ export class Hit extends State {
         this.game.player.maxFrame = 10; 
         this.game.player.frameY = 4;
     }
-    handleInput(input){
+    handleInput(input, deltaTime){
         if(this.game.player.frameX >= 10 && this.game.player.onGround()){
             this.game.player.setState(states.RUNNING, 1);
         } else if(this.game.player.frameX >= 10 && !this.game.player.onGround()){

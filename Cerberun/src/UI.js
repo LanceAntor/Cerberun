@@ -24,6 +24,9 @@ export class UI {
             context.drawImage(this.livesImage, 25 * i + 20, 95, 25, 25);
         }
         
+        // Energy bar (top right)
+        this.drawEnergyBar(context);
+        
         // Controls info (top right)
         // context.font = this.fontSize * 0.5 + 'px ' + this.fontFamily;
         // context.textAlign = 'right';
@@ -43,5 +46,47 @@ export class UI {
         //     }
         // }
         context.restore();
+    }
+    
+    drawEnergyBar(context) {
+        const barWidth = 200;
+        const barHeight = 20;
+        const barX = this.game.width - barWidth - 20; // 20px from right edge
+        const barY = 20; // 20px from top
+        
+        // Energy bar background
+        context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        context.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
+        
+        // Energy bar border
+        context.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        context.lineWidth = 2;
+        context.strokeRect(barX, barY, barWidth, barHeight);
+        
+        // Energy bar fill
+        const energyPercentage = this.game.energy / this.game.maxEnergy;
+        const fillWidth = barWidth * energyPercentage;
+        
+        // Color changes based on energy level
+        if (energyPercentage > 0.6) {
+            context.fillStyle = '#27ae60'; // Green
+        } else if (energyPercentage > 0.3) {
+            context.fillStyle = '#f39c12'; // Orange
+        } else {
+            context.fillStyle = '#e74c3c'; // Red
+        }
+        
+        context.fillRect(barX, barY, fillWidth, barHeight);
+        
+        // Energy text
+        context.font = '14px Helvetica';
+        context.fillStyle = 'white';
+        context.textAlign = 'center';
+        context.fillText('ENERGY', barX + barWidth / 2, barY - 8);
+        
+        // Energy value text
+        context.font = '12px Helvetica';
+        context.fillStyle = 'white';
+        context.fillText(Math.ceil(this.game.energy) + '/' + this.game.maxEnergy, barX + barWidth / 2, barY + barHeight + 15);
     }
 }

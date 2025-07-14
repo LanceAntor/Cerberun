@@ -117,6 +117,7 @@ window.addEventListener('load', function(){
         game.score = 0;
         game.time = 0;
         game.lives = 5;
+        game.energy = 100; // Reset energy
         game.gameOver = false;
         game.enemyTimer = 0;
         game.player.x = 0;
@@ -139,6 +140,7 @@ window.addEventListener('load', function(){
             game.score = 0;
             game.time = 0;
             game.lives = 5;
+            game.energy = 100; // Reset energy
             game.enemies = [];
             game.particles = [];
             game.collisions = [];
@@ -219,6 +221,11 @@ window.addEventListener('load', function(){
             this.winningScore = 40; 
             this.gameOver = false;
             this.lives = 5;
+            this.energy = 100; // Add energy system
+            this.maxEnergy = 100;
+            this.energyRegenRate = 15; // Energy regenerated per second
+            this.rollEnergyCost = 25; // Energy cost for roll attack
+            this.rollEnergyDrainRate = 30; // Energy drained per second while rolling
             this.player.currentState = this.player.states[1]; 
             this.player.currentState.enter();
         }
@@ -226,6 +233,36 @@ window.addEventListener('load', function(){
         // Method to check if sound effects are enabled
         isSoundEnabled() {
             return soundEnabled;
+        }
+        
+        // Energy system methods
+        canUseRollAttack() {
+            return this.energy > 0;
+        }
+        
+        canStartRollAttack() {
+            return this.energy >= this.rollEnergyCost;
+        }
+        
+        drainEnergyForRoll(deltaTime) {
+            if (this.energy > 0) {
+                this.energy -= (this.rollEnergyDrainRate * deltaTime) / 1000;
+                if (this.energy < 0) {
+                    this.energy = 0;
+                    return false; // No more energy
+                }
+                return true; // Still has energy
+            }
+            return false; // No energy
+        }
+        
+        regenerateEnergy(deltaTime) {
+            if (this.energy < this.maxEnergy) {
+                this.energy += (this.energyRegenRate * deltaTime) / 1000;
+                if (this.energy > this.maxEnergy) {
+                    this.energy = this.maxEnergy;
+                }
+            }
         }
         
         // Add method to resize game when window resizes
@@ -243,6 +280,9 @@ window.addEventListener('load', function(){
             if(this.time > this.maxTime) this.gameOver = true;
             this.background.update();
             this.player.update(this.input.keys, deltaTime);
+            
+            // Regenerate energy over time
+            this.regenerateEnergy(deltaTime);
             
             // handleEnemies
             if(this.enemyTimer > this.enemyInterval){

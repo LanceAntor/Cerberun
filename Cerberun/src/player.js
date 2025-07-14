@@ -35,7 +35,7 @@ export class Player {
     }
     update(input, deltaTime) {
         this.checkCollision();
-        this.currentState.handleInput(input);
+        this.currentState.handleInput(input, deltaTime);
         // horizontal movement
         this.x += this.speed;
         if(input.includes('d') && this.currentState !== this.states[6]) this.speed = this.maxSpeed;

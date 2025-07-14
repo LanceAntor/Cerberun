@@ -18,6 +18,20 @@ window.addEventListener('load', function(){
     // Modal functionality
     startButton.addEventListener('click', function() {
         startModal.classList.add('hidden');
+        // Reset game state for fresh start
+        game.enemies = [];
+        game.particles = [];
+        game.collisions = [];
+        game.floatingMessages = [];
+        game.score = 0;
+        game.time = 0;
+        game.lives = 5;
+        game.gameOver = false;
+        game.enemyTimer = 0;
+        game.player.x = 0;
+        game.player.y = game.height - game.player.height - game.groundMargin;
+        game.player.currentState = game.player.states[0];
+        game.player.currentState.enter();
         gameStarted = true;
         // Game loop is already running, just enable game logic updates
     });
@@ -199,6 +213,30 @@ window.addEventListener('load', function(){
         ctx.fillStyle = '#87CEEB'; // Sky blue background as fallback
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
+        // Always update background for animated effect, even when game hasn't started
+        // Set a base speed for background animation even when game isn't started
+        if (!gameStarted) {
+            game.speed = 1; // Base speed for background animation
+            
+            // Spawn and update enemies even when game hasn't started for visual effect
+            if(game.enemyTimer > game.enemyInterval){
+                game.addEnemy();
+                game.enemyTimer = 0;
+            } else {
+                game.enemyTimer += deltaTime;
+            }
+            
+            // Update enemies for visual movement
+            game.enemies.forEach(enemy => enemy.update(deltaTime));
+            // Clean up off-screen enemies
+            game.enemies = game.enemies.filter(enemy => !enemy.markedForDeletion);
+        }
+        
+        game.background.update();
+        
+        // Always draw the game background and player, but only update logic if started
+        game.draw(ctx);
+        
         if (gameStarted) {
             game.update(deltaTime);
             
@@ -210,7 +248,6 @@ window.addEventListener('load', function(){
                 }, 1000); // Small delay to see the final game state
             }
         }
-        game.draw(ctx);
         
         // Continue animation loop regardless of game state for background effect
         requestAnimationFrame(animate);

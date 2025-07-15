@@ -69,11 +69,11 @@ export class UI {
         
         // Color changes based on energy level
         if (energyPercentage > 0.6) {
-            context.fillStyle = '#616462ff'; // Green
+            context.fillStyle = '#616462ff'; 
         } else if (energyPercentage > 0.3) {
-            context.fillStyle = '#919191ff'; // Orange
+            context.fillStyle = '#919191ff'; 
         } else {
-            context.fillStyle = '#d2d2d2ff'; // Red
+            context.fillStyle = '#d2d2d2ff'; 
         }
         
         context.fillRect(barX, barY, fillWidth, barHeight);

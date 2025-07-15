@@ -164,10 +164,10 @@ export class SmallEnemyZombie extends Enemy {
         this.game = game;
         this.width = 292;
         this.height = 410;
-        this.x = -this.width; // Spawn from left side (off screen)
+        this.x = -this.width + 20; // Spawn from left side (off screen)
         this.y = this.game.height - this.height - this.game.groundMargin;
         this.image = document.getElementById('enemy_zombie_right');
-        this.speedX = -(Math.random() * 5 + 5); // Negative speed to move right
+        this.speedX = -(Math.random() * 8 + 5); // Negative speed to move right
         this.speedY = 0;
         this.maxFrame = 7;
         this.scale = 0.2;
@@ -175,6 +175,14 @@ export class SmallEnemyZombie extends Enemy {
         this.displayHeight = this.height * this.scale;
         // Adjust collision box position for scaled size
         this.y = this.game.height - this.displayHeight - this.game.groundMargin;
+        
+        // Play spawn sound effect
+        const zombieSound = document.getElementById('smallZombie');
+        if (zombieSound && this.game.isSoundEnabled()) {
+            zombieSound.currentTime = 0;
+            zombieSound.volume = 0.6;
+            zombieSound.play().catch(e => console.log('Audio play failed:', e));
+        }
     }
     update(deltaTime){
         // Custom movement for left-to-right zombie (don't call super.update() to avoid wrong collision)

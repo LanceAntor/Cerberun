@@ -69,24 +69,24 @@ export class UI {
         
         // Color changes based on energy level
         if (energyPercentage > 0.6) {
-            context.fillStyle = '#27ae60'; // Green
+            context.fillStyle = '#616462ff'; // Green
         } else if (energyPercentage > 0.3) {
-            context.fillStyle = '#f39c12'; // Orange
+            context.fillStyle = '#919191ff'; // Orange
         } else {
-            context.fillStyle = '#e74c3c'; // Red
+            context.fillStyle = '#d2d2d2ff'; // Red
         }
         
         context.fillRect(barX, barY, fillWidth, barHeight);
         
         // Energy text
         context.font = '14px Helvetica';
-        context.fillStyle = 'white';
+        context.fillStyle = 'black';
         context.textAlign = 'center';
         context.fillText('ENERGY', barX + barWidth / 2, barY - 8);
         
-        // Energy value text
-        context.font = '12px Helvetica';
-        context.fillStyle = 'white';
-        context.fillText(Math.ceil(this.game.energy) + '/' + this.game.maxEnergy, barX + barWidth / 2, barY + barHeight + 15);
+        // // Energy value text
+        // context.font = '12px Helvetica';
+        // context.fillStyle = 'black';
+        // context.fillText(Math.ceil(this.game.energy) + '/' + this.game.maxEnergy, barX + barWidth / 2, barY + barHeight + 15);
     }
 }

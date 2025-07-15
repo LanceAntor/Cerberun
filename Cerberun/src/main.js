@@ -346,7 +346,7 @@ window.addEventListener('load', function(){
             }
             this.enemies.push(new FlyingEnemy(this), new ZombieEnemy(this));
             // Add SmallEnemyZombie with a chance of 40%
-            if (Math.random() < 0.4) {
+            if (Math.random() < 0.1) {
                 this.enemies.push(new SmallEnemyZombie(this));
             }
         }   

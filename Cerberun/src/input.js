@@ -11,7 +11,7 @@ export class InputHandler{
                 ) && this.keys.indexOf(e.key) === -1){
                 this.keys.push(e.key);
             } 
-            // else if(e.key === 'p') this.game.debug = !this.game.debug; // DEBUG TOGGLE - COMMENTED OUT
+            else if(e.key === 'p') this.game.debug = !this.game.debug; // DEBUG TOGGLE - COMMENTED OUT
             // else if(e.key === 'f' || e.key === 'F') this.toggleFullscreen(); // Fullscreen toggle - COMMENTED OUT
         });
         window.addEventListener('keyup', e => {

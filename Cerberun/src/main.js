@@ -1,7 +1,7 @@
 import { Player } from './player.js';
 import { InputHandler } from './input.js';
 import { Background } from './background.js';
-import { FlyingEnemy, GroundEnemy, ClimbingEnemy } from './enemies.js';
+import { FlyingEnemy, GroundEnemy, ClimbingEnemy, SmallSpiderEnemy, ZombieEnemy, SmallEnemyZombie} from './enemies.js';
 import { UI } from './UI.js';
 
 window.addEventListener('load', function(){
@@ -221,7 +221,7 @@ window.addEventListener('load', function(){
             this.floatingMessages = [];
             this.maxParticles = 50;
             this.enemyTimer = 0;
-            this.enemyInterval = 500;
+            this.enemyInterval = 1000;
             this.debug = false;
             this.score = 0;
             this.fontColor = 'black';
@@ -337,14 +337,17 @@ window.addEventListener('load', function(){
         }
         addEnemy(){
             if(this.speed > 0 && Math.random() < 0.5) this.enemies.push(new GroundEnemy(this));
-            else if(this.speed > 0) this.enemies.push(new ClimbingEnemy(this));
-            this.enemies.push(new FlyingEnemy(this));
+            else if(this.speed > 0) this.enemies.push(new ClimbingEnemy(this), new SmallSpiderEnemy(this));
+            this.enemies.push(new FlyingEnemy(this), new ZombieEnemy(this));
+            // Add SmallEnemyZombie with a chance of 40%
+            if (Math.random() < 0.4) {
+                this.enemies.push(new SmallEnemyZombie(this));
+            }
         }   
     }
     
     // Initialize game after class definition
     game = new Game(canvas.width, canvas.height);
-    console.log('Game initialized with dimensions:', canvas.width, 'x', canvas.height);
     
     let lastTime = 0;
     let gameOverShown = false;

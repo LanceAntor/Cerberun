@@ -92,3 +92,100 @@ export class ClimbingEnemy extends Enemy {
         context.stroke();
     }
 }
+export class SmallSpiderEnemy extends Enemy {
+    constructor(game){
+        super();
+        this.game = game;
+        this.width = 310;
+        this.height = 175;
+        this.x = this.game.width;
+        this.y = Math.random() * this.game.height * 0.5;
+        this.image = document.getElementById('enemy_small_spider');
+        this.speedX = 0;
+        this.speedY = Math.random() > 0.5 ? 1 : -1; // random vertical direction
+        this.maxFrame = 5;
+        this.scale = 0.3; 
+        this.displayWidth = this.width * this.scale;
+        this.displayHeight = this.height * this.scale;
+    }
+    update(deltaTime){
+        super.update(deltaTime);
+        if(this.y > this.game.height - this.height - this.game.groundMargin) this.speedY *= -1;
+        if(this.y < -this.height) this.markedForDeletion = true; // mark for deletion if off screen
+
+    }
+    draw(context){
+        if(this.game.debug) context.strokeRect(this.x, this.y, this.displayWidth, this.displayHeight);
+        context.drawImage(this.image, this.frameX * this.width, 0, 
+        this.width, this.height, this.x, this.y, this.displayWidth, this.displayHeight);
+        // draw a line to visualize the climbing path - centered on the displayed spider
+        context.beginPath();
+        context.moveTo(this.x + this.displayWidth/2, 0);
+        context.lineTo(this.x + this.displayWidth/2, this.y + this.displayHeight/2);
+        context.stroke();
+    }
+}
+
+export class ZombieEnemy extends Enemy {
+    constructor(game){
+        super();
+        this.game = game;
+        this.width = 292;
+        this.height = 410;
+        this.x = this.game.width + Math.random() * this.game.width * 0.5;
+        this.y = this.game.height - this.height - this.game.groundMargin;
+        this.image = document.getElementById('enemy_zombie');
+        this.speedX = Math.random() * 1 + 0.5; // random speed
+        this.speedY = 0;
+        this.maxFrame = 7;
+        // Scale factor for rendering (0.3 = 30% of original size)
+        this.scale = 0.4;
+        this.displayWidth = this.width * this.scale;
+        this.displayHeight = this.height * this.scale;
+        // Adjust collision box position for scaled size
+        this.y = this.game.height - this.displayHeight - this.game.groundMargin;
+    }
+    update(deltaTime){
+        super.update(deltaTime);
+        // Zombie-specific behavior: move towards the player
+        const player = this.game.player;
+        if (player.x < this.x) this.speedX = Math.abs(this.speedX); // move left
+        if(this.x + this.displayWidth < 0) this.markedForDeletion = true;
+    }
+    draw(context){
+        if(this.game.debug) context.strokeRect(this.x, this.y, this.displayWidth, this.displayHeight);
+        context.drawImage(this.image, this.frameX * this.width, 0, 
+        this.width, this.height, this.x, this.y, this.displayWidth, this.displayHeight);
+    }
+}
+export class SmallEnemyZombie extends Enemy {
+    constructor(game){
+        super();
+        this.game = game;
+        this.width = 292;
+        this.height = 410;
+        this.x = this.game.width + Math.random() * this.game.width * 0.5;
+        this.y = this.game.height - this.height - this.game.groundMargin;
+        this.image = document.getElementById('enemy_zombie');
+        this.speedX = Math.random() * 3 + 3; // random speed
+        this.speedY = 0;
+        this.maxFrame = 7;
+        this.scale = 0.2;
+        this.displayWidth = this.width * this.scale;
+        this.displayHeight = this.height * this.scale;
+        // Adjust collision box position for scaled size
+        this.y = this.game.height - this.displayHeight - this.game.groundMargin;
+    }
+    update(deltaTime){
+        super.update(deltaTime);
+        // Small Zombie-specific behavior: move towards the player
+        const player = this.game.player;
+        if (player.x < this.x) this.speedX = Math.abs(this.speedX); // move left
+        if(this.x + this.displayWidth < 0) this.markedForDeletion = true;
+    }
+    draw(context){
+        if(this.game.debug) context.strokeRect(this.x, this.y, this.displayWidth, this.displayHeight);
+        context.drawImage(this.image, this.frameX * this.width, 0, 
+        this.width, this.height, this.x, this.y, this.displayWidth, this.displayHeight);
+    }
+}

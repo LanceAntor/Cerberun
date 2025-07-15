@@ -1,4 +1,6 @@
 import { Dust, Fire, Splash} from "./particles.js";
+import { CollisionAnimation } from "./collisionAnimation.js";
+import { FloatingMessages } from "./floatingMessages.js";
 
 const states = {
     SITTING: 0,
@@ -155,9 +157,55 @@ export class Diving extends State {
                 this.game.particles.unshift(new Splash(this.game, this.game.player.x + this.game.player.width * 0.5, 
                 this.game.player.y + this.game.player.height * 0.5));
             }
+            
+            // AOE damage effect - defeat enemies within range
+            this.createDivingAOE();
         } else if(input.includes('Enter') && this.game.player.onGround() && this.game.canStartRollAttack()){
             this.game.player.setState(states.ROLLING, 2);
         } 
+    }
+    
+    createDivingAOE() {
+        const player = this.game.player;
+        const aoeRange = 200; 
+        const playerCenterX = player.x + player.width / 2;
+        const playerCenterY = player.y + player.height / 2;
+        
+        // Check all enemies for AOE damage
+        this.game.enemies.forEach(enemy => {
+            // Use displayWidth/Height if enemy has scaling, otherwise use normal width/height
+            const enemyWidth = enemy.displayWidth || enemy.width;
+            const enemyHeight = enemy.displayHeight || enemy.height;
+            const enemyCenterX = enemy.x + enemyWidth / 2;
+            const enemyCenterY = enemy.y + enemyHeight / 2;
+            
+            // Calculate distance between player and enemy centers
+            const distance = Math.sqrt(
+                Math.pow(playerCenterX - enemyCenterX, 2) + 
+                Math.pow(playerCenterY - enemyCenterY, 2)
+            );
+            
+            // If enemy is within AOE range, defeat it
+            if (distance <= aoeRange) {
+                enemy.markedForDeletion = true;
+                
+                // Create collision animation at enemy position
+                this.game.collisions.push(new CollisionAnimation(this.game, 
+                    enemyCenterX, enemyCenterY));
+                
+                // Add score and floating message
+                this.game.score += 2; 
+                this.game.floatingMessages.push(new FloatingMessages('+2 AOE!', 
+                    enemy.x, enemy.y, 150, 50));
+                
+                // Play sound effect if enabled
+                if (this.game.isSoundEnabled()) {
+                    const collisionSound = player.sound.cloneNode(true);
+                    collisionSound.volume = 0.3; // Quieter for multiple enemies
+                    collisionSound.play().catch(e => console.log('AOE audio play failed:', e));
+                }
+            }
+        });
     }
 }
 

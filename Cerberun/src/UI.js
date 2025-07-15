@@ -52,7 +52,7 @@ export class UI {
         const barWidth = 200;
         const barHeight = 20;
         const barX = this.game.width - barWidth - 20; // 20px from right edge
-        const barY = 20; // 20px from top
+        const barY = 40; 
         
         // Energy bar background
         context.fillStyle = 'rgba(0, 0, 0, 0.5)';

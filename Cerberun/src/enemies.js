@@ -164,10 +164,10 @@ export class SmallEnemyZombie extends Enemy {
         this.game = game;
         this.width = 292;
         this.height = 410;
-        this.x = this.game.width + Math.random() * this.game.width * 0.5;
+        this.x = -this.width; // Spawn from left side (off screen)
         this.y = this.game.height - this.height - this.game.groundMargin;
-        this.image = document.getElementById('enemy_zombie');
-        this.speedX = Math.random() * 3 + 3; // random speed
+        this.image = document.getElementById('enemy_zombie_right');
+        this.speedX = -(Math.random() * 5 + 5); // Negative speed to move right
         this.speedY = 0;
         this.maxFrame = 7;
         this.scale = 0.2;
@@ -177,11 +177,25 @@ export class SmallEnemyZombie extends Enemy {
         this.y = this.game.height - this.displayHeight - this.game.groundMargin;
     }
     update(deltaTime){
-        super.update(deltaTime);
-        // Small Zombie-specific behavior: move towards the player
+        // Custom movement for left-to-right zombie (don't call super.update() to avoid wrong collision)
+        this.x -= this.speedX + this.game.speed;
+        this.y += this.speedY;
+        
+        // Animation frame handling
+        if(this.frameTimer > this.frameInterval){
+            this.frameTimer = 0;
+            if(this.frameX < this.maxFrame) this.frameX++;
+            else this.frameX = 0;
+        } else {
+            this.frameTimer += this.frameInterval / 1000 * deltaTime;
+        }
+        
+        // Small Zombie-specific behavior: move towards the player from left
         const player = this.game.player;
-        if (player.x < this.x) this.speedX = Math.abs(this.speedX); // move left
-        if(this.x + this.displayWidth < 0) this.markedForDeletion = true;
+        if (player.x > this.x) this.speedX = -Math.abs(this.speedX); // move right
+        
+        // Use displayWidth for proper collision detection (not full spritesheet width)
+        if(this.x > this.game.width) this.markedForDeletion = true; // delete when off right side
     }
     draw(context){
         if(this.game.debug) context.strokeRect(this.x, this.y, this.displayWidth, this.displayHeight);

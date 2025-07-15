@@ -337,7 +337,13 @@ window.addEventListener('load', function(){
         }
         addEnemy(){
             if(this.speed > 0 && Math.random() < 0.5) this.enemies.push(new GroundEnemy(this));
-            else if(this.speed > 0) this.enemies.push(new ClimbingEnemy(this), new SmallSpiderEnemy(this));
+            else if(this.speed > 0) {
+                if(Math.random() < 0.5) {
+                    this.enemies.push(new ClimbingEnemy(this));
+                } else {
+                    this.enemies.push(new SmallSpiderEnemy(this));
+                }
+            }
             this.enemies.push(new FlyingEnemy(this), new ZombieEnemy(this));
             // Add SmallEnemyZombie with a chance of 40%
             if (Math.random() < 0.4) {

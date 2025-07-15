@@ -297,7 +297,7 @@ body {
 }
 
 #player, #layer1, #layer2, #layer3, #layer4, #layer5, #enemy_fly,
-#enemy_plant, #enemy_spider, #fire, #collisionAnimation, #lives, #enemy_zombie{
+#enemy_plant, #enemy_spider, #fire, #collisionAnimation, #lives, #enemy_zombie, #enemy_zombie_right, #enemy_small_spider {
     display: none;
 }
 

@@ -38,9 +38,18 @@ export class Player {
         this.currentState.handleInput(input, deltaTime);
         // horizontal movement
         this.x += this.speed;
-        if(input.includes('d') && this.currentState !== this.states[6]) this.speed = this.maxSpeed;
-        else if(input.includes('a')  && this.currentState !== this.states[6]) this.speed = -this.maxSpeed;
-        else this.speed = 0;
+        if(input.includes('d') && this.currentState !== this.states[6]) {
+            this.speed = this.maxSpeed;
+        } else if(input.includes('a') && this.currentState !== this.states[6]) {
+            // Increase speed when rolling backwards for better responsiveness
+            if(this.currentState === this.states[4]) { // Rolling state
+                this.speed = -this.maxSpeed * 1.5; // 1.5x faster when rolling backwards
+            } else {
+                this.speed = -this.maxSpeed;
+            }
+        } else {
+            this.speed = 0;
+        }
         // horizontal boundaries
         if(this.x < 0) this.x = 0; // prevent going off the left edge
         if(this.x > this.game.width - this.width) this.x = this.game.width - this.width; // prevent going off the right edge
@@ -78,16 +87,20 @@ export class Player {
     }
     checkCollision(){
         this.game.enemies.forEach(enemy => {
+            // Use displayWidth/Height if enemy has scaling, otherwise use normal width/height
+            const enemyWidth = enemy.displayWidth || enemy.width;
+            const enemyHeight = enemy.displayHeight || enemy.height;
+            
             if(
                 enemy.x < this.x + this.width &&
-                enemy.x + enemy.width > this.x &&
+                enemy.x + enemyWidth > this.x &&
                 enemy.y < this.y + this.height &&
-                enemy.y + enemy.height > this.y
+                enemy.y + enemyHeight > this.y
             ){
                 // collision detected
                 enemy.markedForDeletion = true;
-                this.game.collisions.push(new CollisionAnimation(this.game, enemy.x + enemy.width * 0.5,
-                enemy.y + enemy.height * 0.5
+                this.game.collisions.push(new CollisionAnimation(this.game, enemy.x + enemyWidth * 0.5,
+                enemy.y + enemyHeight * 0.5
                 ));
                 if(this.currentState === this.states[4] || this.currentState === this.states[5]){
                     // Player successfully defeated enemy - play collision sound

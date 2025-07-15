@@ -2,13 +2,13 @@ export class UI {
     constructor(game){
         this.game = game;
         this.fontSize = 30;
-        this.fontFamily = 'Helvetica';
+        this.fontFamily = 'Creepster';
         this.livesImage = document.getElementById('lives');
     }
     draw(context){
         context.save();
-        context.shadowOffsetX = 2;
-        context.shadowOffsetY = 2;
+        context.shadowOffsetX = 1;
+        context.shadowOffsetY = 1;
         context.shadowColor = 'white';
         context.shadowBlur = 0;
         context.font = this.fontSize + 'px ' + this.fontFamily;
@@ -79,13 +79,13 @@ export class UI {
         context.fillRect(barX, barY, fillWidth, barHeight);
         
         // Energy text
-        context.font = '14px Helvetica';
-        context.fillStyle = 'black';
+        context.font = '14px Nosifer';
+        context.fillStyle = 'white';
         context.textAlign = 'center';
         context.fillText('ENERGY', barX + barWidth / 2, barY - 8);
         
         // // Energy value text
-        // context.font = '12px Helvetica';
+        // context.font = '12px Creepster';
         // context.fillStyle = 'black';
         // context.fillText(Math.ceil(this.game.energy) + '/' + this.game.maxEnergy, barX + barWidth / 2, barY + barHeight + 15);
     }

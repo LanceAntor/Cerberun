@@ -15,7 +15,7 @@ export class FloatingMessages {
         if(this.timer > 100) this.markedForDeletion = true;
     }
     draw(context){
-        context.font = '20px Helvetica';
+        context.font = '20px Creepster';
         context.fillStyle = 'white';
         context.fillText(this.value, this.x, this.y);
         context.fillStyle = 'black';

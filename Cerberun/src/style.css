@@ -54,6 +54,7 @@ body {
 .modal-header {
     text-align: center;
     margin-bottom: 30px;
+    font-family: 'Nosifer', cursive;
 }
 
 .modal-header h1 {
@@ -80,6 +81,7 @@ body {
     margin-bottom: 20px;
     color: #fff;
     text-align: center;
+    font-family: 'Nosifer', cursive;
 }
 
 .control-group {
@@ -179,9 +181,10 @@ body {
     background: linear-gradient(135deg, #2b2b2b, #242424);
     color: white;
     border: none;
-    padding: 15px 40px;
+    padding: 15px 30px;
     font-size: 1.5rem;
     font-weight: bold;
+    font-family: 'Nosifer', cursive;
     border-color: 3px solid black;
     border-radius: 10px;
     cursor: pointer;

@@ -27,7 +27,7 @@ window.addEventListener('load', function(){
     
     function initializeAudio() {
         if (!audioInitialized) {
-            backgroundMusic.volume = 0.1;
+            backgroundMusic.volume = 0.5;
             if (musicEnabled) {
                 startBackgroundMusic();
             }
@@ -38,7 +38,7 @@ window.addEventListener('load', function(){
     function startBackgroundMusic() {
         if (!musicEnabled) return;
         backgroundMusic.currentTime = 0; 
-        backgroundMusic.volume = 0.1; 
+        backgroundMusic.volume = 0.5; 
         const playPromise = backgroundMusic.play();
         
         if (playPromise !== undefined) {

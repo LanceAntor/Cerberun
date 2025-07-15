@@ -13,6 +13,7 @@ window.addEventListener('load', function(){
     const playAgainButton = document.getElementById('playAgainButton');
     const settingsModal = document.getElementById('settingsModal');
     const continueButton = document.getElementById('continueButton');
+    const restartButton = document.getElementById('restartButton');
     const musicToggle = document.getElementById('musicToggle');
     const soundToggle = document.getElementById('soundToggle');
     const finalScore = document.getElementById('finalScore');
@@ -73,6 +74,14 @@ window.addEventListener('load', function(){
     
     // Settings Event Listeners
     continueButton.addEventListener('click', closeSettingsModal);
+    
+    restartButton.addEventListener('click', function() {
+        // Close settings modal and restart the game
+        closeSettingsModal();
+        restartGame();
+        // Reset and restart background music
+        startBackgroundMusic();
+    });
     
     musicToggle.addEventListener('click', function() {
         musicEnabled = !musicEnabled;

@@ -14,6 +14,24 @@
     
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <h1 style="font-family: 'Nosifer', cursive; font-size: 45px;">CERBERUN</h1>
+            <img src="./src/assets/cover_image.png" alt="Cerberun" class="loading-image">
+            <div class="loading-text">"Outrun the Underworld. Unleash the Bite"</div>
+            <div class="loading-bar-container">
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loadingProgress"></div>
+                </div>
+            </div>
+            <div class="loading-credits">
+                <div class="developer">Developed by Lance Antor</div>
+                <div class="copyright">© 2025 Cerberun. All Rights Reserved.</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Start Screen Modal -->
     <div id="startModal" class="modal">
         <div class="modal-content">
@@ -37,10 +55,15 @@
                         <div class="arrow">→</div>
                         <div class="description">Movements</div>
                     </div>
-                    <div class="control-group">
+                    <div class="control-group" style="margin-left: 50px;">
                         <div class="key large-key">Enter</div>
                         <div class="arrow">→</div>
                         <div class="description">Roll Attack</div>
+                    </div>
+                    <div class="control-group" style="margin-left: 20px">
+                        <div class="key large-key">Esc</div>
+                        <div class="arrow">→</div>
+                        <div class="description">Settings</div>
                     </div>
                 </div>
                 <div class="separator"></div>
@@ -61,7 +84,7 @@
         </div>
     </div>
 
-    <!-- Game Over Modal -->
+    Game Over Modal
     <div id="gameOverModal" class="modal hidden">
         <div class="modal-content game-over-content">
             <div class="modal-header">
@@ -109,6 +132,7 @@
     <canvas id="canvas1"></canvas>
 
     <img id="player" src="./src/assets/player_black.png">
+    <img id="cover_image" src="./src/assets/cover_image.png">
     <!-- <img id="layer1" src="./src/assets/backgroundLayers/layer-1.png">
     <img id="layer2" src="./src/assets/backgroundLayers/layer-2.png">
     <img id="layer3" src="./src/assets/Pale/trees&bushes.png">

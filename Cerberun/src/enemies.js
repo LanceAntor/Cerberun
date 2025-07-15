@@ -176,9 +176,9 @@ export class SmallEnemyZombie extends Enemy {
         // Adjust collision box position for scaled size
         this.y = this.game.height - this.displayHeight - this.game.groundMargin;
         
-        // Play spawn sound effect
+        // Play spawn sound effect only if game has started
         const zombieSound = document.getElementById('smallZombie');
-        if (zombieSound && this.game.isSoundEnabled()) {
+        if (zombieSound && this.game.isSoundEnabled() && this.game.gameStarted) {
             zombieSound.currentTime = 0;
             zombieSound.volume = 0.6;
             zombieSound.play().catch(e => console.log('Audio play failed:', e));

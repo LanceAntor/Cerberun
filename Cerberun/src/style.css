@@ -74,6 +74,7 @@ body {
 .controls-section, .howto-section {
     flex: 1;
     text-align: center;
+    line-height: 35px;
 }
 
 .controls-section h2, .howto-section h2 {
@@ -261,44 +262,7 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
-    .modal-content {
-        padding: 20px;
-        width: 95%;
-    }
-    
-    .modal-header h1 {
-        font-size: 2rem;
-    }
-    
-    .modal-body {
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .separator {
-        width: 100%;
-        height: 2px;
-        margin: 10px 0;
-    }
-    
-    .controls-section h2, .howto-section h2 {
-        font-size: 1.4rem;
-    }
-    
-    .key {
-        width: 35px;
-        height: 35px;
-        font-size: 1rem;
-    }
-    
-    .large-key {
-        width: 70px;
-        height: 35px;
-    }
-}
-
+/* Hide elements by default */
 #player, #layer1, #layer2, #layer3, #layer4, #layer5, #enemy_fly,
 #enemy_plant, #enemy_spider, #fire, #collisionAnimation, #lives, #enemy_zombie, #enemy_zombie_right, #enemy_small_spider {
     display: none;
@@ -423,4 +387,153 @@ body {
 .restart-btn:active {
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Loading Screen Styles */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #000000, #1a1a1a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: opacity 0.5s ease-out;
+}
+
+.loading-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+    max-width: 600px;
+    width: 90%;
+}
+
+.loading-image {
+    width: 500px;
+    height: 400px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+.loading-text {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    letter-spacing: 2px;
+    font-family: 'Creepster';
+}
+
+.loading-bar-container {
+    margin-bottom: 30px;
+}
+
+.loading-bar {
+    width: 100%;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    position: relative;
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #444, #666, #888);
+    border-radius: 8px;
+    width: 0%;
+    transition: width 0.1s ease-out;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.loading-subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 50px;
+    color: #ccc;
+    font-style: italic;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.loading-credits {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.developer {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.copyright {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .modal-header h1 {
+        font-size: 2rem;
+    }
+    
+    .modal-body {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .separator {
+        width: 100%;
+        height: 2px;
+        margin: 10px 0;
+    }
+    
+    .controls-section h2, .howto-section h2 {
+        font-size: 1.4rem;
+    }
+    
+    .key {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+    
+    .large-key {
+        width: 70px;
+        height: 35px;
+    }
+    
+    .loading-image {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .loading-text {
+        font-size: 1.4rem;
+        margin-bottom: 30px;
+    }
+    
+    .loading-subtitle {
+        font-size: 1.1rem;
+        margin-bottom: 40px;
+    }
 }

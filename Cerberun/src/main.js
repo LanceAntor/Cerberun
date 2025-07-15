@@ -18,6 +18,38 @@ window.addEventListener('load', function(){
     const soundToggle = document.getElementById('soundToggle');
     const finalScore = document.getElementById('finalScore');
     const backgroundMusic = document.getElementById('backgroundMusic');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingProgress = document.getElementById('loadingProgress');
+    
+    // Loading Screen Logic
+    function startLoadingSequence() {
+        let progress = 0;
+        const loadingDuration = 5000; 
+        const updateInterval = 50; 
+        const progressIncrement = (100 / (loadingDuration / updateInterval));
+        
+        const loadingInterval = setInterval(() => {
+            progress += progressIncrement;
+            loadingProgress.style.width = Math.min(progress, 100) + '%';
+            
+            if (progress >= 100) {
+                clearInterval(loadingInterval);
+                setTimeout(() => {
+                    // Fade out loading screen
+                    loadingScreen.classList.add('fade-out');
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                        startModal.classList.remove('hidden');
+                        initializeAudio();
+                    }, 500); // Wait for fade out transition
+                }, 500); // Small delay before starting fade out
+            }
+        }, updateInterval);
+    }
+    
+    // Initialize loading screen
+    startModal.classList.add('hidden'); // Hide start modal initially
+    startLoadingSequence();
     
     let gameStarted = false;
     let gamePaused = false;
@@ -104,8 +136,7 @@ window.addEventListener('load', function(){
     document.addEventListener('keydown', initializeAudio, { once: true });
     document.addEventListener('touchstart', initializeAudio, { once: true });
     
-    // Try to start music immediately (will work if autoplay is allowed)
-    startBackgroundMusic();
+    // Don't start music during loading - it will start after loading completes
     
     // Initialize toggle states
     updateToggleStates();
@@ -128,6 +159,7 @@ window.addEventListener('load', function(){
         game.lives = 5;
         game.energy = 100; // Reset energy
         game.gameOver = false;
+        game.gameStarted = true; // Set game started flag
         game.enemyTimer = 0;
         game.player.x = 0;
         game.player.y = game.height - game.player.height - game.groundMargin;
@@ -146,6 +178,7 @@ window.addEventListener('load', function(){
     function restartGame() {
         if (game) {
             game.gameOver = false;
+            game.gameStarted = true; // Set game started flag
             game.score = 0;
             game.time = 0;
             game.lives = 5;
@@ -229,11 +262,12 @@ window.addEventListener('load', function(){
             this.maxTime = 30000; // 30 seconds
             this.winningScore = 40; 
             this.gameOver = false;
+            this.gameStarted = false; // Add gameStarted property
             this.lives = 5;
             this.energy = 100; // Add energy system
             this.maxEnergy = 100;
             this.energyRegenRate = 15; // Energy regenerated per second
-            this.rollEnergyCost = 25; // Energy cost for roll attack
+            this.rollEnergyCost = 10; // Energy cost for roll attack
             this.rollEnergyDrainRate = 30; // Energy drained per second while rolling
             this.player.currentState = this.player.states[1]; 
             this.player.currentState.enter();

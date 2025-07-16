@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
-    <title>Javascript Game</title>
+    <title>Cerberun</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Germania+One&family=Kumar+One&family=Limelight&family=Nosifer&display=swap" rel="stylesheet">
@@ -149,9 +149,13 @@
     <img id="enemy_zombie_right" src="./src/assets/enemy_zombie_right.png">
     <img id="enemy_small_spider" src="./src/assets/enemy_spider.png">
 
+    <!-- Player Assets -->
     <img id="fire" src="./src/assets/pearlring.png">
     <img id="collisionAnimation" src="./src/assets/boom.png">
     <img id="lives" src="./src/assets/lives.png">
+
+    <!--Collectibles Assets-->
+    <img id="heart" src="./src/assets/heart.png">
     <img id="clock" src="./src/assets/clock.png">
 
     <!-- Background Music -->
@@ -185,6 +189,11 @@
         <source src="./src/assets/sound/Healing Full.wav" type="audio/wav">
         <source src="./src/assets/sound/boom_pack/boom6.mp3" type="audio/mpeg">
         <source src="./src/assets/sound/boom_pack/boom6.ogg" type="audio/ogg">
+    </audio>
+    <audio id="wolfHowl" preload="auto">
+        <source src="./src/assets/sound/wolf_howl.mp3" type="audio/mpeg">
+        <source src="./src/assets/sound/wolf_howl.ogg" type="audio/ogg">
+        <source src="./src/assets/sound/wolf_howl.wav" type="audio/wav">
     </audio>
 
     <script type="module" src="./src/main.js"></script>

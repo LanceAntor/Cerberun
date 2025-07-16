@@ -3,7 +3,7 @@ import { InputHandler } from './input.js';
 import { Background } from './background.js';
 import { FlyingEnemy, GroundEnemy, ClimbingEnemy, SmallSpiderEnemy, ZombieEnemy, SmallEnemyZombie} from './enemies.js';
 import { UI } from './UI.js';
-import { CollectibleManager } from './collectibles.js';
+import { CollectibleManager, Clock, Heart } from './collectibles.js';
 
 // Comprehensive zoom prevention
 document.addEventListener('DOMContentLoaded', function() {

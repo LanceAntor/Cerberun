@@ -273,6 +273,7 @@ body {
     padding: 10px 15px;
     font-size: 1.2rem;
     font-weight: bold;
+    font-family: 'helvetica', sans-serif;
     border-radius: 10px;
     border: 3px solid black;
     cursor: pointer;
@@ -289,6 +290,46 @@ body {
 .play-again-btn:active {
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Game Over Modal Footer Layout */
+.game-over-content .modal-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.game-over-leaderboard-btn {
+    background: linear-gradient(135deg, #2b2b2b, #242424);
+    color: white;
+    border: none;
+    border: 3px solid black;
+    padding: 12px 25px;
+    font-size: 14;
+    font-weight: bold;
+    font-family: 'Helvetica', sans-serif;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    width: 250px;
+}
+
+.game-over-leaderboard-btn:hover {
+    background: linear-gradient(135deg, #717171, #717171);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.game-over-leaderboard-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure Play Again button matches width */
+.play-again-btn {
+    width: 250px;
 }
 
 /* Hide elements by default */
@@ -565,5 +606,208 @@ body {
     .loading-subtitle {
         font-size: 1.1rem;
         margin-bottom: 40px;
+    }
+}
+
+/* Username Input Styles */
+.username-input {
+    width: 45%;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 1.2rem;
+    font-family: 'Helvetica', sans-serif;
+    text-align: center;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.username-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.username-input:focus {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.leaderboard-btn {
+    background: linear-gradient(135deg, #2b2b2b, #242424);
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    font-family: 'Nosifer', cursive;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.leaderboard-btn:hover {
+    background: linear-gradient(135deg, #717171, #717171);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.leaderboard-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Leaderboard Modal Styles */
+.leaderboard-content {
+    max-width: 600px;
+    text-align: center;
+}
+
+.leaderboard-body {
+    margin: 30px 0;
+}
+
+.leaderboard-table {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.leaderboard-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.3rem;
+    color: #fff;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.rank-header, .username-header, .score-header {
+    padding: 0 10px;
+}
+
+.leaderboard-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.leaderboard-entry {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.leaderboard-entry:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.leaderboard-entry:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.leaderboard-entry.current-user {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    font-weight: bold;
+}
+
+.rank, .username, .score {
+    padding: 0 10px;
+    color: #ccc;
+}
+
+.leaderboard-entry.current-user .rank,
+.leaderboard-entry.current-user .username,
+.leaderboard-entry.current-user .score {
+    color: #ffd700;
+}
+
+.rank {
+    font-weight: bold;
+}
+
+.rank:nth-child(1) { color: #ffd700; } /* Gold for 1st */
+.rank:nth-child(2) { color: #c0c0c0; } /* Silver for 2nd */
+.rank:nth-child(3) { color: #cd7f32; } /* Bronze for 3rd */
+
+.close-leaderboard-btn {
+    background: linear-gradient(135deg, #2b2b2b, #2d2d2d);
+    color: white;
+    width: 50%;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    border: 3px solid black;
+    letter-spacing: 1px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.close-leaderboard-btn:hover {
+    background: linear-gradient(135deg, #717171, #717171);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.close-leaderboard-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.empty-leaderboard {
+    padding: 40px;
+    color: #999;
+    font-size: 1.2rem;
+    font-style: italic;
+}
+
+/* Responsive leaderboard */
+@media (max-width: 768px) {
+    .leaderboard-content {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    .leaderboard-header,
+    .leaderboard-entry {
+        grid-template-columns: 0.8fr 2fr 1fr;
+        padding: 10px;
+        font-size: 1rem;
+    }
+    
+    .username-input {
+        font-size: 1rem;
+        padding: 10px;
+    }
+    
+    .button-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .leaderboard-btn,
+    .start-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
     }
 }

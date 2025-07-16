@@ -79,7 +79,11 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="startButton" class="start-btn">START</button>
+                <input type="text" id="usernameInput" placeholder="Enter your username" maxlength="15" class="username-input">
+                <div class="button-group">
+                    <button id="leaderboardButton" class="leaderboard-btn">Leaderboards</button>
+                    <button id="startButton" class="start-btn">START</button>
+                </div>
             </div>
         </div>
     </div>
@@ -98,6 +102,7 @@
             </div>
             <div class="modal-footer">
                 <button id="playAgainButton" class="play-again-btn">PLAY AGAIN</button>
+                <button id="gameOverLeaderboardButton" class="game-over-leaderboard-btn">LEADERBOARD</button>
             </div>
         </div>
     </div>
@@ -125,6 +130,30 @@
             <div class="modal-footer">
                 <button id="restartButton" class="restart-btn">RESTART</button>
                 <button id="continueButton" class="continue-btn">CONTINUE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboards Modal -->
+    <div id="leaderboardModal" class="modal hidden">
+        <div class="modal-content leaderboard-content">
+            <div class="modal-header">
+                <h1>LEADERBOARDS</h1>
+            </div>
+            <div class="leaderboard-body">
+                <div class="leaderboard-table">
+                    <div class="leaderboard-header">
+                        <div class="rank-header">Rank</div>
+                        <div class="username-header">Username</div>
+                        <div class="score-header">Score</div>
+                    </div>
+                    <div id="leaderboardList" class="leaderboard-list">
+                        <!-- Leaderboard entries will be populated here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeLeaderboardButton" class="close-leaderboard-btn">BACK</button>
             </div>
         </div>
     </div>

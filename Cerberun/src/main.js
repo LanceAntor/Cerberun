@@ -6,6 +6,80 @@ import { UI } from './UI.js';
 import { CollectibleManager, Clock, Heart } from './collectibles.js';
 import { inject } from "@vercel/analytics"
 
+// Leaderboard System
+class LeaderboardManager {
+    constructor() {
+        this.storageKey = 'cerberun_leaderboard';
+        this.maxEntries = 5;
+    }
+    
+    getLeaderboard() {
+        try {
+            const stored = localStorage.getItem(this.storageKey);
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('Error loading leaderboard:', error);
+            return [];
+        }
+    }
+    
+    saveLeaderboard(leaderboard) {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(leaderboard));
+            return true;
+        } catch (error) {
+            console.error('Error saving leaderboard:', error);
+            return false;
+        }
+    }
+    
+    addScore(username, score) {
+        if (!username || username.trim() === '') {
+            username = 'Anonymous';
+        }
+        
+        const leaderboard = this.getLeaderboard();
+        const newEntry = {
+            username: username.trim().substring(0, 15), // Limit username length
+            score: score,
+            date: new Date().toISOString()
+        };
+        
+        // Add new entry
+        leaderboard.push(newEntry);
+        
+        // Sort by score (highest first)
+        leaderboard.sort((a, b) => b.score - a.score);
+        
+        // Keep only top entries
+        const trimmedLeaderboard = leaderboard.slice(0, this.maxEntries);
+        
+        // Save back to localStorage
+        this.saveLeaderboard(trimmedLeaderboard);
+        
+        // Return the rank of the new entry (1-based)
+        const rank = trimmedLeaderboard.findIndex(entry => 
+            entry.username === newEntry.username && 
+            entry.score === newEntry.score &&
+            entry.date === newEntry.date
+        ) + 1;
+        
+        return rank > 0 ? rank : null;
+    }
+    
+    isHighScore(score) {
+        const leaderboard = this.getLeaderboard();
+        if (leaderboard.length < this.maxEntries) {
+            return true; // Always a high score if leaderboard isn't full
+        }
+        return score > leaderboard[leaderboard.length - 1].score;
+    }
+    
+    clearLeaderboard() {
+        localStorage.removeItem(this.storageKey);
+    }
+}
+
 // Comprehensive zoom prevention
 document.addEventListener('DOMContentLoaded', function() {
     // Prevent zoom with keyboard shortcuts
@@ -73,6 +147,20 @@ window.addEventListener('load', function(){
     const backgroundMusic = document.getElementById('backgroundMusic');
     const loadingScreen = document.getElementById('loadingScreen');
     const loadingProgress = document.getElementById('loadingProgress');
+    
+    // Leaderboard elements
+    const leaderboardModal = document.getElementById('leaderboardModal');
+    const leaderboardButton = document.getElementById('leaderboardButton');
+    const closeLeaderboardButton = document.getElementById('closeLeaderboardButton');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const usernameInput = document.getElementById('usernameInput');
+    const gameOverLeaderboardButton = document.getElementById('gameOverLeaderboardButton');
+    
+    // Initialize leaderboard manager
+    const leaderboardManager = new LeaderboardManager();
+    
+    // Track where leaderboard was opened from
+    let leaderboardOpenedFrom = 'start'; // 'start' or 'gameOver'
     
     // Loading Screen Logic
     function startLoadingSequence() {
@@ -197,6 +285,18 @@ window.addEventListener('load', function(){
     
     // Modal functionality
     startButton.addEventListener('click', function() {
+        // Validate username
+        const username = usernameInput.value.trim();
+        if (!username) {
+            usernameInput.style.borderColor = '#e74c3c';
+            usernameInput.placeholder = 'Please enter a username!';
+            usernameInput.focus();
+            return;
+        }
+        
+        // Reset input styling
+        usernameInput.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+        
         // Ensure audio is initialized on user interaction
         initializeAudio();
         
@@ -243,6 +343,42 @@ window.addEventListener('load', function(){
         restartGame();
     });
     
+    // Leaderboard Event Listeners
+    leaderboardButton.addEventListener('click', function() {
+        leaderboardOpenedFrom = 'start';
+        openLeaderboard();
+    });
+    
+    closeLeaderboardButton.addEventListener('click', function() {
+        closeLeaderboard();
+    });
+    
+    // Game Over Leaderboard Button
+    gameOverLeaderboardButton.addEventListener('click', function() {
+        leaderboardOpenedFrom = 'gameOver';
+        gameOverModal.classList.add('hidden');
+        openLeaderboard();
+    });
+    
+    // Username input validation
+    usernameInput.addEventListener('input', function() {
+        // Limit to 15 characters and remove special characters except spaces, letters, and numbers
+        this.value = this.value.replace(/[^a-zA-Z0-9\s]/g, '').substring(0, 15);
+    });
+    
+    // Save username to localStorage for persistence
+    usernameInput.addEventListener('change', function() {
+        if (this.value.trim()) {
+            localStorage.setItem('cerberun_username', this.value.trim());
+        }
+    });
+    
+    // Load saved username on page load
+    const savedUsername = localStorage.getItem('cerberun_username');
+    if (savedUsername) {
+        usernameInput.value = savedUsername;
+    }
+    
     function restartGame() {
         if (game) {
             game.gameOver = false;
@@ -279,10 +415,111 @@ window.addEventListener('load', function(){
         }
     }
     
-    function showGameOverModal() {
-        finalScore.textContent = game.score;
+    // Leaderboard Functions
+    function displayLeaderboard() {
+        const leaderboard = leaderboardManager.getLeaderboard();
+        const currentUsername = usernameInput.value.trim() || 'Anonymous';
+        
+        if (leaderboard.length === 0) {
+            leaderboardList.innerHTML = '<div class="empty-leaderboard">No scores yet. Be the first to play!</div>';
+            return;
+        }
+        
+        leaderboardList.innerHTML = '';
+        
+        leaderboard.forEach((entry, index) => {
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'leaderboard-entry';
+            
+            // Highlight current user's entry
+            if (entry.username === currentUsername) {
+                entryDiv.classList.add('current-user');
+            }
+            
+            const rank = index + 1;
+            let rankDisplay = rank;
+            
+            // Add medals for top 3
+            if (rank === 1) rankDisplay = '🥇 1';
+            else if (rank === 2) rankDisplay = '🥈 2';
+            else if (rank === 3) rankDisplay = '🥉 3';
+            
+            entryDiv.innerHTML = `
+                <div class="rank">${rankDisplay}</div>
+                <div class="username">${entry.username}</div>
+                <div class="score">${entry.score}</div>
+            `;
+            
+            leaderboardList.appendChild(entryDiv);
+        });
+    }
+    
+    function openLeaderboard() {
+        displayLeaderboard();
+        leaderboardModal.classList.remove('hidden');
+    }
+    
+    function closeLeaderboard() {
+        leaderboardModal.classList.add('hidden');
+        
+        // Return to appropriate modal based on where leaderboard was opened from
+        if (leaderboardOpenedFrom === 'gameOver') {
+            gameOverModal.classList.remove('hidden');
+            leaderboardOpenedFrom = 'start'; // Reset for next time
+        }
+    }
+    
+    function handleGameOver() {
+        const finalGameScore = game.score;
+        const username = usernameInput.value.trim() || 'Anonymous';
+        
+        // Add score to leaderboard
+        const rank = leaderboardManager.addScore(username, finalGameScore);
+        
+        // Show game over modal
+        finalScore.textContent = finalGameScore;
+        
+        // Add high score notification if applicable
+        if (rank && rank <= leaderboardManager.maxEntries) {
+            const highScoreMsg = document.createElement('div');
+            highScoreMsg.className = 'high-score-notification';
+            highScoreMsg.innerHTML = `NEW HIGH SCORE!<br>Rank #${rank} `;
+            highScoreMsg.style.cssText = `
+                color: #ffd700;
+                font-size: 1.2rem;
+                font-weight: bold;
+                margin-top: 15px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                animation: pulse 1s infinite alternate;
+            `;
+            
+            // Add CSS animation if not exists
+            if (!document.querySelector('#highScoreAnimation')) {
+                const style = document.createElement('style');
+                style.id = 'highScoreAnimation';
+                style.textContent = `
+                    @keyframes pulse {
+                        from { opacity: 0.8; transform: scale(1); }
+                        to { opacity: 1; transform: scale(1.05); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            const scoreDisplay = document.querySelector('.score-display');
+            // Remove any existing high score notification
+            const existingNotification = scoreDisplay.querySelector('.high-score-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            scoreDisplay.appendChild(highScoreMsg);
+        }
         
         gameOverModal.classList.remove('hidden');
+    }
+    
+    function showGameOverModal() {
+        handleGameOver();
     }
     
     // Restart functionality and ESC key for settings

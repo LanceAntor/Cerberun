@@ -4,6 +4,7 @@ import { Background } from './background.js';
 import { FlyingEnemy, GroundEnemy, ClimbingEnemy, SmallSpiderEnemy, ZombieEnemy, SmallEnemyZombie} from './enemies.js';
 import { UI } from './UI.js';
 import { CollectibleManager, Clock, Heart } from './collectibles.js';
+import { Analytics } from "@vercel/analytics/next"
 
 // Comprehensive zoom prevention
 document.addEventListener('DOMContentLoaded', function() {
@@ -75,6 +76,7 @@ window.addEventListener('load', function(){
     
     // Loading Screen Logic
     function startLoadingSequence() {
+        Analytics();
         let progress = 0;
         const loadingDuration = 5000; 
         const updateInterval = 50; 

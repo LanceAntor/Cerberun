@@ -9,7 +9,15 @@ export class Clock {
         this.height = 30; 
         this.x = this.game.width + Math.random() * this.game.width * 0.5; // Start from right side
         this.y = Math.random() * (this.game.height - this.game.groundMargin - this.height - 200) + 100; // Safe spawn area above ground
-        this.speedX = Math.random() * 1 + 2; // Horizontal speed
+        
+        const rand = Math.random();
+        if (rand < 0.4) {
+            this.speedX = Math.random() * 0.5 + 1.2; // Slow: 1.2 - 1.7
+        } else if (rand < 0.8) {
+            this.speedX = Math.random() * 0.8 + 4; // Normal: 4 - 4.8
+        } else {
+            this.speedX = Math.random() * 2 + 8; // Super fast: 8 - 10
+        }
         this.markedForDeletion = false;
         this.image = document.getElementById('clock');
         this.frameX = 0;

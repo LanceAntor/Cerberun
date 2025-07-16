@@ -5,6 +5,57 @@ import { FlyingEnemy, GroundEnemy, ClimbingEnemy, SmallSpiderEnemy, ZombieEnemy,
 import { UI } from './UI.js';
 import { CollectibleManager } from './collectibles.js';
 
+// Comprehensive zoom prevention
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevent zoom with keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '0')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Prevent zoom with mouse wheel + ctrl/cmd
+    document.addEventListener('wheel', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            return false;
+        }
+    }, { passive: false });
+
+    // Prevent pinch zoom on touch devices
+    let lastTouchEnd = 0;
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchend', function(e) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+
+    // Prevent context menu
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    // Prevent drag and drop
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+    });
+});
+
 window.addEventListener('load', function(){
     const canvas = document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');

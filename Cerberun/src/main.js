@@ -25,7 +25,7 @@ window.addEventListener('load', function(){
     // Loading Screen Logic
     function startLoadingSequence() {
         let progress = 0;
-        const loadingDuration = 0; 
+        const loadingDuration = 5000; 
         const updateInterval = 50; 
         const progressIncrement = (100 / (loadingDuration / updateInterval));
         

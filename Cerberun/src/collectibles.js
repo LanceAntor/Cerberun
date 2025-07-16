@@ -109,14 +109,38 @@ export class Clock {
     draw(context) {
        // console.log('Drawing clock at:', this.x, this.y, 'size:', this.width, this.height); // Debug log
         
-        // Add a subtle glow effect
         context.save();
-        context.shadowColor = '#e6e6e6ff'; // Yellow glow
-        context.shadowBlur = 10;
+        
+        // Calculate circle properties
+        const centerX = this.x + this.width / 2;
+        const centerY = this.y + this.height / 2;
+        const circleRadius = Math.max(this.width, this.height) / 2 + 5; // Slightly larger than clock
+        
+        // Draw highlight/glow circle (outer)
+        context.shadowColor = '#f9f9f9ff'; // Yellow glow
+        context.shadowBlur = 15;
+        context.fillStyle = '#444444'; // Dark gray highlight
+        context.beginPath();
+        context.arc(centerX, centerY, circleRadius + 3, 0, 2 * Math.PI);
+        context.fill();
+        
+        // Reset shadow for black circle
+        context.shadowColor = 'transparent';
+        context.shadowBlur = 0;
+        
+        // Draw black circular background
+        context.fillStyle = '#000000'; // Black circle
+        context.beginPath();
+        context.arc(centerX, centerY, circleRadius, 0, 2 * Math.PI);
+        context.fill();
+        
+        // Add subtle inner glow to black circle
+        context.shadowColor = '#333333';
+        context.shadowBlur = 0;
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
         
-        // Draw the clock image
+        // Draw the clock image on top of black circle
         if (this.image && this.image.complete) {
             context.drawImage(
                 this.image,
@@ -161,7 +185,7 @@ export class CollectibleManager {
         this.game = game;
         this.collectibles = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 5000 + Math.random() * 5000; // 5-10 seconds between spawns (reduced for testing)
+        this.spawnInterval = 7000 + Math.random() * 7000; // 5-10 seconds between spawns (reduced for testing)
     }
     
     update(deltaTime) {

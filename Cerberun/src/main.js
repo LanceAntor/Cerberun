@@ -586,7 +586,7 @@ window.addEventListener('load', function(){
                 gameOverShown = true;
                 setTimeout(() => {
                     showGameOverModal();
-                }, 1000); // Small delay to see the final game state
+                }, 500); 
             }
         }
         

@@ -16,7 +16,7 @@ export class Clock {
         } else if (rand < 0.8) {
             this.speedX = Math.random() * 0.8 + 4; // Normal: 4 - 4.8
         } else {
-            this.speedX = Math.random() * 2 + 8; // Super fast: 8 - 10
+            this.speedX = Math.random() * 1 + 5; 
         }
         this.markedForDeletion = false;
         this.image = document.getElementById('clock');
@@ -204,7 +204,7 @@ export class Heart {
         } else if (rand < 0.8) {
             this.speedX = Math.random() * 0.8 + 4; // Normal: 4 - 4.8
         } else {
-            this.speedX = Math.random() * 2 + 8; // Super fast: 8 - 10
+            this.speedX = Math.random() * 1 + 5; // Super fast: 5 - 6
         }
         this.markedForDeletion = false;
         this.image = document.getElementById('heart');
@@ -382,10 +382,10 @@ export class CollectibleManager {
         this.heartSpawnTimer = 0;
         
         // Clock: 8-20 seconds interval
-        this.clockSpawnInterval = 8000 + Math.random() * 12000; // 8000ms + 0-12000ms = 8-20 seconds
+        this.clockSpawnInterval = 6000 + Math.random() * 6000; 
         
         // Heart: 20-30 seconds interval
-        this.heartSpawnInterval = 20000 + Math.random() * 10000; // 20000ms + 0-10000ms = 20-30 seconds
+        this.heartSpawnInterval = 12000 + Math.random() * 12000; // 20000ms + 0-10000ms = 20-30 seconds
     }
     update(deltaTime) {
         // Update both spawn timers
@@ -396,7 +396,7 @@ export class CollectibleManager {
         if (this.clockSpawnTimer >= this.clockSpawnInterval) {
             this.spawnClock();
             this.clockSpawnTimer = 0;
-            this.clockSpawnInterval = 8000 + Math.random() * 8000;
+            this.clockSpawnInterval = 6000 + Math.random() * 6000; // 
         }
         
         // Check if it's time to spawn a heart

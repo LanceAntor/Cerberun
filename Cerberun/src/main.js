@@ -3,6 +3,7 @@ import { InputHandler } from './input.js';
 import { Background } from './background.js';
 import { FlyingEnemy, GroundEnemy, ClimbingEnemy, SmallSpiderEnemy, ZombieEnemy, SmallEnemyZombie} from './enemies.js';
 import { UI } from './UI.js';
+import { CollectibleManager } from './collectibles.js';
 
 window.addEventListener('load', function(){
     const canvas = document.getElementById('canvas1');
@@ -24,7 +25,7 @@ window.addEventListener('load', function(){
     // Loading Screen Logic
     function startLoadingSequence() {
         let progress = 0;
-        const loadingDuration = 5000; 
+        const loadingDuration = 0; 
         const updateInterval = 50; 
         const progressIncrement = (100 / (loadingDuration / updateInterval));
         
@@ -154,6 +155,7 @@ window.addEventListener('load', function(){
         game.particles = [];
         game.collisions = [];
         game.floatingMessages = [];
+        game.collectibleManager.reset(); // Reset collectibles
         game.score = 0;
         game.time = game.startingTime; // Reset to starting time
         game.lives = 5;
@@ -200,6 +202,7 @@ window.addEventListener('load', function(){
             game.particles = [];
             game.collisions = [];
             game.floatingMessages = [];
+            game.collectibleManager.reset(); // Reset collectibles
             
             // Reset stage system
             game.currentStage = 1;
@@ -285,7 +288,7 @@ window.addEventListener('load', function(){
             this.debug = false;
             this.score = 0;
             this.fontColor = 'black';
-            this.startingTime = 400000; // 40 seconds in milliseconds
+            this.startingTime = 40000; // 40 seconds in milliseconds
             this.time = this.startingTime; // Start with full time
             this.winningScore = 40; 
             this.gameOver = false;
@@ -296,6 +299,9 @@ window.addEventListener('load', function(){
             this.energyRegenRate = 15; // Energy regenerated per second
             this.rollEnergyCost = 10; // Energy cost for roll attack
             this.rollEnergyDrainRate = 30; // Energy drained per second while rolling
+            
+            // Collectibles System
+            this.collectibleManager = new CollectibleManager(this);
             
             // Stage System
             this.currentStage = 1;
@@ -414,6 +420,9 @@ window.addEventListener('load', function(){
             this.checkStageProgress(deltaTime);
             this.updateStageDisplay(deltaTime);
             
+            // Update collectibles
+            this.collectibleManager.update(deltaTime);
+            
             // Regenerate energy over time
             this.regenerateEnergy(deltaTime);
             
@@ -454,6 +463,7 @@ window.addEventListener('load', function(){
             this.collisions.forEach(collision => {
                 collision.draw(context);
             });
+            this.collectibleManager.draw(context);
             this.floatingMessages.forEach(message => {
                 message.draw(context);
             });
@@ -527,10 +537,8 @@ window.addEventListener('load', function(){
             }
         }
         
-        // Continue animation loop regardless of game state for background effect
         requestAnimationFrame(animate);
     }
     
-    // Start the animation loop immediately for background effect
     animate(0);
 });

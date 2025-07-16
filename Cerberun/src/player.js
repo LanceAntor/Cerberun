@@ -110,6 +110,7 @@ export class Player {
                         collisionSound.play().catch(e => console.log('Collision audio play failed:', e));
                     }
                     this.game.score++;
+                    this.game.checkForStageAdvancement(); // Check for immediate stage advancement
                     this.game.floatingMessages.push(new FloatingMessages('+1', enemy.x, enemy.y, 150, 50));
                 } else {
                     // Player took damage - play damage sound only

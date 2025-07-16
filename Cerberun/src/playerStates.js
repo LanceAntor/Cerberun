@@ -207,6 +207,7 @@ export class Diving extends State {
                 
                 // Add score and floating message
                 this.game.score += 2; 
+                this.game.checkForStageAdvancement(); // Check for immediate stage advancement
                 this.game.floatingMessages.push(new FloatingMessages('+2 AOE!', 
                     enemy.x, enemy.y, 150, 50));
                 

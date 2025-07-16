@@ -14,37 +14,31 @@ export class UI {
         context.font = this.fontSize + 'px ' + this.fontFamily;
         context.textAlign = 'left';
         context.fillStyle = this.game.fontColor;
-        //score
-        context.fillText('Score: ' + this.game.score, 20, 50);
+        //score with target
+        const stageTarget = this.game.getCurrentStageTarget();
+        context.fillText(`Score: ${this.game.score}/${stageTarget}`, 20, 50);
         //timer
         context.font = this.fontSize * 0.8 + 'px ' + this.fontFamily;
-        context.fillText('Time: ' + (this.game.time * 0.001).toFixed(1), 20 ,80);
+        const remainingTime = Math.max(0, (this.game.time * 0.001).toFixed(1));
+        context.fillText('Time: ' + remainingTime, 20 ,80);
+        
+        // Stage info
+        context.font = this.fontSize * 0.7 + 'px ' + this.fontFamily;
+        context.fillText(`Stage ${this.game.currentStage}`, 20, 110);
+        
         //lives
         for (let i = 0; i < this.game.lives; i++){  
-            context.drawImage(this.livesImage, 25 * i + 20, 95, 25, 25);
+            context.drawImage(this.livesImage, 25 * i + 20, 115, 25, 25);
         }
         
         // Energy bar (top right)
         this.drawEnergyBar(context);
         
-        // Controls info (top right)
-        // context.font = this.fontSize * 0.5 + 'px ' + this.fontFamily;
-        // context.textAlign = 'right';
-        // context.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        // context.fillText('WASD: Move | Enter: Roll', this.game.width - 20, 30);
-        // // context.fillText('WASD: Move | Enter: Roll | P: Debug', this.game.width - 20, 30); // OLD with debug toggle
-        // context.fillText('WASD: Move | Enter: Roll | F: Fullscreen | P: Debug', this.game.width - 20, 30); // OLD with fullscreen toggle
-        // game over message
-        // if(this.game.gameOver){
-        //     context.textAlign = 'center';
-        //     context.font = this.fontSize * 2 + 'px ' + this.fontFamily;
-        //     if(this.game.score > this.game.winningScore){
-        //         context.fillText('You win! Press R to restart', this.game.width * 0.5, this.game.height * 0.5 + 40);
-        //     } else {
-        //         context.fillText('Game Over', this.game.width * 0.5, this.game.height * 0.5);
-        //         context.font = this.fontSize * 0.8 + 'px ' + this.fontFamily;
-        //     }
-        // }
+        // Stage Display Popup
+        if (this.game.showingStage) {
+            this.drawStageDisplay(context);
+        }
+        
         context.restore();
     }
     
@@ -88,5 +82,39 @@ export class UI {
         // context.font = '12px Creepster';
         // context.fillStyle = 'black';
         // context.fillText(Math.ceil(this.game.energy) + '/' + this.game.maxEnergy, barX + barWidth / 2, barY + barHeight + 15);
+    }
+    
+    drawStageDisplay(context) {
+        // Semi-transparent overlay
+        context.fillStyle = 'rgba(0, 0, 0, 0)';
+        context.fillRect(0, 0, this.game.width, this.game.height);
+        
+        // Stage text
+        context.textAlign = 'center';
+        context.fillStyle = 'white';
+        context.strokeStyle = 'black';
+        context.lineWidth = 4;
+        
+        // Main stage text
+        context.font = '80px Creepster';
+        const stageText = `STAGE ${this.game.currentStage}`;
+        const centerX = this.game.width / 2;
+        const centerY = this.game.height / 2 - 50;
+        
+        context.strokeText(stageText, centerX, centerY);
+        context.fillText(stageText, centerX, centerY);
+        
+        // Points required text
+        if (this.game.currentStage <= 5) {
+            context.font = '30px Creepster';
+            const targetScore = this.game.getCurrentStageTarget();
+            const pointsText = `POINTS REQUIRED: ${targetScore}`;
+            
+            context.strokeText(pointsText, centerX, centerY + 80);
+            context.fillText(pointsText, centerX, centerY + 80);
+        }
+        
+        // Reset text alignment
+        context.textAlign = 'left';
     }
 }

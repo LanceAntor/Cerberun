@@ -155,17 +155,31 @@ window.addEventListener('load', function(){
         game.collisions = [];
         game.floatingMessages = [];
         game.score = 0;
-        game.time = 0;
+        game.time = game.startingTime; // Reset to starting time
         game.lives = 5;
         game.energy = 100; // Reset energy
         game.gameOver = false;
         game.gameStarted = true; // Set game started flag
         game.enemyTimer = 0;
+        
+        // Reset stage system
+        game.currentStage = 1;
+        game.stageTimer = 0;
+        game.stageDisplayTime = 0;
+        game.showingStage = false;
+        
         game.player.x = 0;
         game.player.y = game.height - game.player.height - game.groundMargin;
         game.player.currentState = game.player.states[1]; // Set to running state
         game.player.currentState.enter();
         gameStarted = true;
+        
+        // Show Stage 1 after 3 seconds
+        setTimeout(() => {
+            if (gameStarted && !game.gameOver) {
+                game.showStageDisplay();
+            }
+        }, 1500);
     });
     
     playAgainButton.addEventListener('click', function() {
@@ -180,19 +194,33 @@ window.addEventListener('load', function(){
             game.gameOver = false;
             game.gameStarted = true; // Set game started flag
             game.score = 0;
-            game.time = 0;
+            game.time = game.startingTime; // Reset to starting time
             game.lives = 5;
             game.energy = 100; // Reset energy
             game.enemies = [];
             game.particles = [];
             game.collisions = [];
             game.floatingMessages = [];
+            
+            // Reset stage system
+            game.currentStage = 1;
+            game.stageTimer = 0;
+            game.stageDisplayTime = 0;
+            game.showingStage = false;
+            
             game.player.x = 0;
             game.player.y = game.height - game.player.height - game.groundMargin;
             game.player.currentState = game.player.states[1]; // Set to running state
             game.player.currentState.enter();
             gameOverShown = false;
             gameStarted = true;
+            
+            // Show Stage 1 after 3 seconds
+            setTimeout(() => {
+                if (gameStarted && !game.gameOver) {
+                    game.showStageDisplay();
+                }
+            }, 2000);
         }
     }
     
@@ -258,8 +286,8 @@ window.addEventListener('load', function(){
             this.debug = false;
             this.score = 0;
             this.fontColor = 'black';
-            this.time = 0;
-            this.maxTime = 30000; // 30 seconds
+            this.startingTime = 400000; // 40 seconds in milliseconds
+            this.time = this.startingTime; // Start with full time
             this.winningScore = 40; 
             this.gameOver = false;
             this.gameStarted = false; // Add gameStarted property
@@ -269,6 +297,15 @@ window.addEventListener('load', function(){
             this.energyRegenRate = 15; // Energy regenerated per second
             this.rollEnergyCost = 10; // Energy cost for roll attack
             this.rollEnergyDrainRate = 30; // Energy drained per second while rolling
+            
+            // Stage System
+            this.currentStage = 1;
+            this.stageTargets = [0, 80, 150, 250, 350, 500]; // Index 0 unused, stages 1-5
+            this.stageTimer = 0;
+            this.stageDisplayTime = 0;
+            this.showingStage = false;
+            this.stageCheckInterval = 10000; // Check stage every 10 seconds
+            
             this.player.currentState = this.player.states[1]; 
             this.player.currentState.enter();
         }
@@ -308,6 +345,53 @@ window.addEventListener('load', function(){
             }
         }
         
+        // Stage System Methods
+        checkStageProgress(deltaTime) {
+            this.stageTimer += deltaTime;
+            
+            // Check stage progression every 10 seconds
+            if (this.stageTimer >= this.stageCheckInterval) {
+                this.stageTimer = 0;
+                // The timed check is now just for resetting the timer
+                // Actual stage advancement happens immediately when score is reached
+            }
+        }
+        
+        // Immediate stage advancement check (called when score changes)
+        checkForStageAdvancement() {
+            if (this.currentStage <= 5) {
+                const targetScore = this.stageTargets[this.currentStage];
+                
+                if (this.score >= targetScore) {
+                    // Player reached target, advance to next stage
+                    this.currentStage++;
+                    if (this.currentStage <= 5) {
+                        this.showStageDisplay();
+                        // Reset the stage timer when advancing
+                        this.stageTimer = 0;
+                    }
+                }
+            }
+        }
+        
+        showStageDisplay() {
+            this.showingStage = true;
+            this.stageDisplayTime = 0;
+        }
+        
+        updateStageDisplay(deltaTime) {
+            if (this.showingStage) {
+                this.stageDisplayTime += deltaTime;
+                if (this.stageDisplayTime >= 3000) { // Show for 3 seconds
+                    this.showingStage = false;
+                }
+            }
+        }
+        
+        getCurrentStageTarget() {
+            return this.stageTargets[this.currentStage] || 0;
+        }
+        
         // Add method to resize game when window resizes
         resize(width, height) {
             this.width = width;
@@ -319,10 +403,17 @@ window.addEventListener('load', function(){
             this.background.resize();
         }
         update(deltaTime){
-            this.time += deltaTime;
-            if(this.time > this.maxTime) this.gameOver = true;
+            this.time -= deltaTime; // Decrease time instead of increase
+            if(this.time <= 0) {
+                this.time = 0; // Ensure time doesn't go negative
+                this.gameOver = true;
+            }
             this.background.update();
             this.player.update(this.input.keys, deltaTime);
+            
+            // Stage system updates
+            this.checkStageProgress(deltaTime);
+            this.updateStageDisplay(deltaTime);
             
             // Regenerate energy over time
             this.regenerateEnergy(deltaTime);

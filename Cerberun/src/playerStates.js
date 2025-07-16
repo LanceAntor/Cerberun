@@ -33,6 +33,8 @@ export class Sitting extends State {
             this.game.player.setState(states.RUNNING, 1);
         } else if(input.includes('Enter') && this.game.canStartRollAttack()){
             this.game.player.setState(states.ROLLING, 1);
+        } else if(input.includes('w') && this.game.player.onGround()){
+            this.game.player.setState(states.JUMPING, 1);
         }
     }
 }
@@ -156,6 +158,16 @@ export class Diving extends State {
             for(let i = 0; i < 30; i++){
                 this.game.particles.unshift(new Splash(this.game, this.game.player.x + this.game.player.width * 0.5, 
                 this.game.player.y + this.game.player.height * 0.5));
+            }
+            
+            // Play diving impact sound when hitting ground
+            if (this.game.isSoundEnabled()) {
+                const collisionSound = document.getElementById('divingSound');
+                if (collisionSound) {
+                    collisionSound.currentTime = 0;
+                    collisionSound.volume = 0.7;
+                    collisionSound.play().catch(e => console.log('Diving impact sound failed:', e));
+                }
             }
             
             // AOE damage effect - defeat enemies within range

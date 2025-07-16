@@ -89,6 +89,33 @@ export class UI {
         context.fillStyle = 'rgba(0, 0, 0, 0)';
         context.fillRect(0, 0, this.game.width, this.game.height);
         
+        // Animation timing
+        const totalDuration = 3000; 
+        const slideInDuration = 500; 
+        const stayDuration = 2000;
+        const slideOutDuration = 500; 
+        
+        const currentTime = this.game.stageDisplayTime;
+        
+        // Calculate animation position
+        let offsetX = 0;
+        
+        if (currentTime <= slideInDuration) {
+            // Slide in from left
+            const progress = currentTime / slideInDuration;
+            const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+            offsetX = -this.game.width * (1 - easeProgress);
+        } else if (currentTime <= slideInDuration + stayDuration) {
+            // Stay in center
+            offsetX = 0;
+        } else {
+            // Slide out to right
+            const slideOutStartTime = slideInDuration + stayDuration;
+            const progress = (currentTime - slideOutStartTime) / slideOutDuration;
+            const easeProgress = Math.pow(progress, 3); // Ease in cubic
+            offsetX = this.game.width * easeProgress;
+        }
+        
         // Stage text
         context.textAlign = 'center';
         context.fillStyle = 'white';
@@ -96,9 +123,9 @@ export class UI {
         context.lineWidth = 4;
         
         // Main stage text
-        context.font = '80px Creepster';
+        context.font = '160px Creepster';
         const stageText = `STAGE ${this.game.currentStage}`;
-        const centerX = this.game.width / 2;
+        const centerX = this.game.width / 2 + offsetX;
         const centerY = this.game.height / 2 - 50;
         
         context.strokeText(stageText, centerX, centerY);
@@ -106,12 +133,12 @@ export class UI {
         
         // Points required text
         if (this.game.currentStage <= 5) {
-            context.font = '30px Creepster';
+            context.font = '50px Creepster';
             const targetScore = this.game.getCurrentStageTarget();
             const pointsText = `POINTS REQUIRED: ${targetScore}`;
             
-            context.strokeText(pointsText, centerX, centerY + 80);
-            context.fillText(pointsText, centerX, centerY + 80);
+            context.strokeText(pointsText, centerX, centerY + 50);
+            context.fillText(pointsText, centerX, centerY + 50);
         }
         
         // Reset text alignment

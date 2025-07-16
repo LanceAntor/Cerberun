@@ -174,12 +174,11 @@ window.addEventListener('load', function(){
         game.player.currentState.enter();
         gameStarted = true;
         
-        // Show Stage 1 after 3 seconds
         setTimeout(() => {
             if (gameStarted && !game.gameOver) {
                 game.showStageDisplay();
             }
-        }, 1500);
+        }, 1000); 
     });
     
     playAgainButton.addEventListener('click', function() {
@@ -220,7 +219,7 @@ window.addEventListener('load', function(){
                 if (gameStarted && !game.gameOver) {
                     game.showStageDisplay();
                 }
-            }, 2000);
+            }, 1500);
         }
     }
     

@@ -1077,24 +1077,24 @@ window.addEventListener('load', function(){
             this.stageDisplayTime = 0;
             
             // Play stage sound when stage is displayed
-            if (soundEnabled) {
+            if (this.isSoundEnabled()) {
                 let stageSound = null;
                 
                 switch(this.currentStage) {
                     case 1:
-                        stageSound = stage1Sound;
+                        stageSound = document.getElementById('stage1Sound');
                         break;
                     case 2:
-                        stageSound = stage2Sound;
+                        stageSound = document.getElementById('stage2Sound');
                         break;
                     case 3:
-                        stageSound = stage3Sound;
+                        stageSound = document.getElementById('stage3Sound');
                         break;
                     case 4:
-                        stageSound = stage4Sound;
+                        stageSound = document.getElementById('stage4Sound');
                         break;
                     case 5:
-                        stageSound = stage5Sound;
+                        stageSound = document.getElementById('stage5Sound');
                         break;
                 }
                 
@@ -1119,18 +1119,21 @@ window.addEventListener('load', function(){
             this.showingStage = true;
             this.stageDisplayTime = 0;
             // Play endless forest sound for endless mode
-            if (soundEnabled && endlessForestSound) {
-                try {
-                    endlessForestSound.currentTime = 0;
-                    endlessForestSound.volume = 0.8;
-                    const playPromise = endlessForestSound.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(e => {
-                            // Silent error handling
-                        });
+            if (this.isSoundEnabled()) {
+                const endlessForestSound = document.getElementById('endlessForest');
+                if (endlessForestSound) {
+                    try {
+                        endlessForestSound.currentTime = 0;
+                        endlessForestSound.volume = 0.8;
+                        const playPromise = endlessForestSound.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(e => {
+                                // Silent error handling
+                            });
+                        }
+                    } catch (error) {
+                        // Silent error handling
                     }
-                } catch (error) {
-                    // Silent error handling
                 }
             }
         }

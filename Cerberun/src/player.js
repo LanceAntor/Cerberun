@@ -35,7 +35,7 @@ export class Player {
         
         // Invulnerability system
         this.invulnerable = false;
-        this.invulnerabilityDuration = 2000;
+        this.invulnerabilityDuration = 1000;
         this.invulnerabilityTimer = 0;
         this.blinkTimer = 0;
         this.blinkInterval = 100; // Blink every 100ms during invulnerability

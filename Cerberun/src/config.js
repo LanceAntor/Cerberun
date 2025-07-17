@@ -15,53 +15,95 @@ const firebaseConfig = {
 window.firebaseInitialized = false;
 window.firebaseInitPromise = null;
 
+// Debug: Log environment info
+console.log('Environment:', {
+    hostname: window.location.hostname,
+    isProduction: window.location.hostname !== 'localhost',
+    userAgent: navigator.userAgent.substring(0, 50)
+});
+
 // Debug: Log Firebase initialization
-console.log('Initializing Firebase with project:', firebaseConfig.projectId);
+console.log('Starting Firebase initialization with project:', firebaseConfig.projectId);
 
 // Function to initialize Firebase
 function initializeFirebase() {
     return new Promise((resolve, reject) => {
         try {
+            // Check if Firebase libraries are loaded
+            if (typeof firebase === 'undefined') {
+                throw new Error('Firebase library not loaded');
+            }
+
             // Check if Firebase is already initialized
             if (window.firebaseInitialized) {
+                console.log('Firebase already initialized');
                 resolve(window.db);
                 return;
             }
 
+            console.log('Initializing Firebase app...');
             // Initialize Firebase
             firebase.initializeApp(firebaseConfig);
-            console.log('Firebase initialized successfully');
+            console.log('Firebase app initialized successfully');
 
+            console.log('Initializing Firestore...');
             // Initialize Firestore
             const db = firebase.firestore();
             
+            // Set Firestore settings for better performance
+            db.settings({
+                cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+            });
+            
+            console.log('Firestore initialized, enabling network...');
             // Enable network for Firestore (important for Vercel)
             db.enableNetwork().then(() => {
-                console.log('Firestore network enabled');
+                console.log('✅ Firestore network enabled successfully');
                 window.db = db;
                 window.firebaseInitialized = true;
+                
+                // Test connection with a simple read
+                return db.collection('leaderboard').limit(1).get();
+            }).then(() => {
+                console.log('✅ Firebase connection test successful');
                 resolve(db);
-            }).catch((error) => {
-                console.error('Failed to enable Firestore network:', error);
+            }).catch((networkError) => {
+                console.warn('⚠️ Firestore network enable failed, but continuing:', networkError);
                 window.db = db; // Still set db even if network enable fails
                 window.firebaseInitialized = true;
                 resolve(db);
             });
 
         } catch (error) {
-            console.error('Firebase initialization failed:', error);
+            console.error('❌ Firebase initialization failed:', error);
             reject(error);
         }
     });
 }
 
-// Initialize Firebase immediately
-window.firebaseInitPromise = initializeFirebase();
+// Initialize Firebase when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing Firebase...');
+        window.firebaseInitPromise = initializeFirebase();
+    });
+} else {
+    console.log('DOM already loaded, initializing Firebase...');
+    window.firebaseInitPromise = initializeFirebase();
+}
 
 // Also expose db globally for immediate access
-window.firebaseInitPromise.then((db) => {
-    window.db = db;
-    console.log('Firebase setup complete');
-}).catch((error) => {
-    console.error('Firebase setup failed:', error);
-});
+if (window.firebaseInitPromise) {
+    window.firebaseInitPromise.then((db) => {
+        window.db = db;
+        console.log('🚀 Firebase setup complete and ready');
+        
+        // Dispatch custom event to notify other scripts
+        window.dispatchEvent(new CustomEvent('firebaseReady', { detail: { db } }));
+    }).catch((error) => {
+        console.error('💥 Firebase setup failed:', error);
+        
+        // Dispatch error event
+        window.dispatchEvent(new CustomEvent('firebaseError', { detail: { error } }));
+    });
+}

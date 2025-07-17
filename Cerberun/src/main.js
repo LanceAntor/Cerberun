@@ -14,15 +14,28 @@ class LeaderboardManager {
         this.isOnline = navigator.onLine;
         this.firebaseReady = false;
         
-        // Check if Firebase is available
+        // Listen for Firebase ready event
+        window.addEventListener('firebaseReady', () => {
+            console.log('📡 LeaderboardManager: Firebase ready event received');
+            this.firebaseReady = true;
+        });
+        
+        window.addEventListener('firebaseError', (event) => {
+            console.error('📡 LeaderboardManager: Firebase error event received', event.detail.error);
+            this.firebaseReady = false;
+        });
+        
+        // Check if Firebase is available immediately
         this.checkFirebaseConnection();
         
         // Listen for online/offline events
         window.addEventListener('online', () => {
+            console.log('📡 Network: Online');
             this.isOnline = true;
             this.checkFirebaseConnection();
         });
         window.addEventListener('offline', () => {
+            console.log('📡 Network: Offline');
             this.isOnline = false;
         });
     }
@@ -245,7 +258,8 @@ class LeaderboardManager {
     }
 }
 
-// Comprehensive zoom prevention and console access blocking
+// Comprehensive zoom prevention and console access blocking - TEMPORARILY DISABLED FOR FIREBASE DEBUGGING
+/*
 document.addEventListener('DOMContentLoaded', function() {
     // Prevent zoom with keyboard shortcuts
     document.addEventListener('keydown', function(e) {
@@ -361,6 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
         configurable: false
     });
 });
+*/
 
 
 window.addEventListener('load', function(){

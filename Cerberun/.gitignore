@@ -18,6 +18,8 @@ dist-ssr
 firebase-debug.log
 firestore-debug.log
 .firebaserc
+# Exclude actual config file with real API keys (use config.template.js instead)
+src/config.js
 # Firebase API keys are public (client-side) identifiers, security handled by Firestore rules
 
 # Environment variables

@@ -8,7 +8,6 @@ import { inject } from "@vercel/analytics";
 import { setupFirebase } from './config.js';
 
 // Initialize Firebase as soon as possible
-console.log('Initializing Firebase from main.js...');
 setupFirebase();
 
 // Firestore Leaderboard System
@@ -47,40 +46,30 @@ class LeaderboardManager {
     
     async checkFirebaseConnection() {
         try {
-            console.log('Checking Firebase connection...');
-            
             // Wait for Firebase to be initialized with multiple retries
             let attempts = 0;
             const maxAttempts = 30; // 15 seconds maximum wait
             
             while ((!window.firebaseInitialized || !window.db) && attempts < maxAttempts) {
-                console.log(`Firebase not ready, attempt ${attempts + 1}/${maxAttempts}`);
                 await new Promise(resolve => setTimeout(resolve, 500));
                 attempts++;
             }
             
             if (!window.firebaseInitialized || !window.db) {
-                console.error('Firebase failed to initialize after 15 seconds');
                 this.firebaseReady = false;
                 return;
             }
             
-            console.log('Firebase initialized, testing connection...');
-            
             // Try a simple read operation to test connection
             await window.db.collection(this.collectionName).limit(1).get();
             this.firebaseReady = true;
-            console.log('✅ Firebase connection verified successfully');
         } catch (error) {
-            console.error('❌ Firebase connection failed:', error);
             this.firebaseReady = false;
         }
     }
     
     async getLeaderboard() {
         try {
-            console.log('Getting leaderboard...');
-            
             // Wait for Firebase to be ready
             await this.waitForFirebase();
             
@@ -97,22 +86,18 @@ class LeaderboardManager {
                 });
             });
             
-            console.log('✅ Leaderboard loaded successfully:', leaderboard.length, 'entries');
             return leaderboard;
         } catch (error) {
-            console.error('❌ Error loading leaderboard from Firestore:', error);
             // Fallback to localStorage if Firestore fails
             return this.getLocalLeaderboard();
         }
     }
     
     async waitForFirebase() {
-        console.log('Waiting for Firebase to be ready...');
         let attempts = 0;
         const maxAttempts = 60; // 30 seconds maximum wait
         
         while ((!window.firebaseInitialized || !window.db) && attempts < maxAttempts) {
-            console.log(`Firebase not ready, waiting... (${attempts + 1}/${maxAttempts})`);
             await new Promise(resolve => setTimeout(resolve, 500));
             attempts++;
         }
@@ -120,8 +105,6 @@ class LeaderboardManager {
         if (!window.firebaseInitialized || !window.db) {
             throw new Error('Firebase not ready after 30 seconds');
         }
-        
-        console.log('✅ Firebase is ready!');
     }
     
     getLocalLeaderboard() {
@@ -155,8 +138,6 @@ class LeaderboardManager {
         };
         
         try {
-            console.log('Adding score to leaderboard...');
-            
             // Wait for Firebase to be ready
             await this.waitForFirebase();
             
@@ -165,7 +146,6 @@ class LeaderboardManager {
 
             // Add to Firestore
             const docRef = await window.db.collection(this.collectionName).add(newEntry);
-            console.log('✅ Score added to Firestore successfully');
             
             // Get updated leaderboard to find rank
             const leaderboard = await this.getLeaderboard();
@@ -182,7 +162,6 @@ class LeaderboardManager {
             return rank > 0 ? rank : null;
             
         } catch (error) {
-            console.error('❌ Error adding score to Firestore:', error);
             // Fallback to local storage
             return this.addScoreLocal(username.trim().substring(0, 15), score);
         }
@@ -265,8 +244,7 @@ class LeaderboardManager {
     }
 }
 
-// Comprehensive zoom prevention and console access blocking - TEMPORARILY DISABLED FOR FIREBASE DEBUGGING
-/*
+// Comprehensive zoom prevention and console access blocking
 document.addEventListener('DOMContentLoaded', function() {
     // Prevent zoom with keyboard shortcuts
     document.addEventListener('keydown', function(e) {
@@ -382,7 +360,6 @@ document.addEventListener('DOMContentLoaded', function() {
         configurable: false
     });
 });
-*/
 
 
 window.addEventListener('load', function(){
@@ -426,7 +403,6 @@ window.addEventListener('load', function(){
     
     // Give Firebase plenty of time to initialize before checking connection
     setTimeout(() => {
-        console.log('Starting delayed Firebase connection check...');
         leaderboardManager.checkFirebaseConnection();
     }, 5000); // Increased to 5 seconds
     
@@ -766,7 +742,6 @@ window.addEventListener('load', function(){
         leaderboardList.innerHTML = '<div class="loading-leaderboard">Loading leaderboard...</div>';
         
         try {
-            console.log('DisplayLeaderboard: Getting leaderboard data...');
             const leaderboard = await leaderboardManager.getLeaderboard();
             
             if (leaderboard.length === 0) {

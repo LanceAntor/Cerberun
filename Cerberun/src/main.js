@@ -706,7 +706,7 @@ window.addEventListener('load', function(){
             game.gameStarted = true; // Set game started flag
             game.score = 0;
             game.time = game.startingTime; // Reset to starting time
-            game.lives = 5;
+            game.lives = 3;
             game.energy = 100; // Reset energy
             game.enemies = [];
             game.particles = [];

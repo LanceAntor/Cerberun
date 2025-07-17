@@ -403,7 +403,7 @@ export class CollectibleManager {
         if (this.heartSpawnTimer >= this.heartSpawnInterval) {
             this.spawnHeart();
             this.heartSpawnTimer = 0;
-            this.heartSpawnInterval = 30000 + Math.random() * 30000;
+            this.heartSpawnInterval = 25000 + Math.random() * 25000;
         }
         
         // Update all collectibles
@@ -440,6 +440,6 @@ export class CollectibleManager {
         
         // Reset intervals with randomness
         this.clockSpawnInterval = 8000 + Math.random() * 7000;
-        this.heartSpawnInterval = 30000 + Math.random() * 30000;
+        this.heartSpawnInterval = 25000 + Math.random() * 25000;
     }
 }

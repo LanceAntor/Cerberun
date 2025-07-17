@@ -4,7 +4,12 @@ import { Background } from './background.js';
 import { FlyingEnemy, GroundEnemy, ClimbingEnemy, SmallSpiderEnemy, ZombieEnemy, SmallEnemyZombie} from './enemies.js';
 import { UI } from './UI.js';
 import { CollectibleManager, Clock, Heart } from './collectibles.js';
-import { inject } from "@vercel/analytics"
+import { inject } from "@vercel/analytics";
+import { setupFirebase } from './config.js';
+
+// Initialize Firebase as soon as possible
+console.log('Initializing Firebase from main.js...');
+setupFirebase();
 
 // Firestore Leaderboard System
 class LeaderboardManager {
@@ -42,71 +47,43 @@ class LeaderboardManager {
     
     async checkFirebaseConnection() {
         try {
-            // Use the global Firebase readiness function if available
-            if (typeof window.ensureFirebaseReady === 'function') {
-                console.log('Ensuring Firebase is ready...');
-                await window.ensureFirebaseReady();
-            } else {
-                console.log('ensureFirebaseReady not available, waiting for firebaseInitPromise...');
-                if (window.firebaseInitPromise) {
-                    await window.firebaseInitPromise;
-                }
+            console.log('Checking Firebase connection...');
+            
+            // Wait for Firebase to be initialized with multiple retries
+            let attempts = 0;
+            const maxAttempts = 30; // 15 seconds maximum wait
+            
+            while ((!window.firebaseInitialized || !window.db) && attempts < maxAttempts) {
+                console.log(`Firebase not ready, attempt ${attempts + 1}/${maxAttempts}`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
             }
             
             if (!window.firebaseInitialized || !window.db) {
-                console.log('Firebase db not available yet');
+                console.error('Firebase failed to initialize after 15 seconds');
                 this.firebaseReady = false;
                 return;
             }
             
+            console.log('Firebase initialized, testing connection...');
+            
             // Try a simple read operation to test connection
             await window.db.collection(this.collectionName).limit(1).get();
             this.firebaseReady = true;
-            console.log('Firebase connection verified');
+            console.log('✅ Firebase connection verified successfully');
         } catch (error) {
-            console.error('Firebase connection failed:', error);
+            console.error('❌ Firebase connection failed:', error);
             this.firebaseReady = false;
         }
     }
     
     async getLeaderboard() {
         try {
-            // Use the global Firebase readiness function if available
-            if (typeof window.ensureFirebaseReady === 'function') {
-                console.log('Ensuring Firebase is ready for getLeaderboard...');
-                await window.ensureFirebaseReady();
-            } else {
-                console.log('ensureFirebaseReady not available, using fallback...');
-                if (window.firebaseInitPromise) {
-                    await window.firebaseInitPromise;
-                }
-            }
+            console.log('Getting leaderboard...');
             
-            // Double check that Firebase is actually ready
-            if (!window.firebaseInitialized || !window.db) {
-                console.log('Firebase not ready, waiting...');
-                // Wait a bit longer and try again
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                if (!window.firebaseInitialized || !window.db) {
-                    throw new Error('Firebase not initialized after waiting');
-                }
-            }
+            // Wait for Firebase to be ready
+            await this.waitForFirebase();
             
-            // Check Firebase connection first
-            if (!this.isOnline || !this.firebaseReady) {
-                if (!window.db) {
-                    throw new Error('Firebase not initialized');
-                }
-                if (!this.isOnline) {
-                    throw new Error('No internet connection');
-                }
-                // Try to reconnect
-                await this.checkFirebaseConnection();
-                if (!this.firebaseReady) {
-                    throw new Error('Firebase connection not ready');
-                }
-            }
-
             const snapshot = await window.db.collection(this.collectionName)
                 .orderBy('score', 'desc')
                 .limit(this.maxEntries)
@@ -120,12 +97,31 @@ class LeaderboardManager {
                 });
             });
             
+            console.log('✅ Leaderboard loaded successfully:', leaderboard.length, 'entries');
             return leaderboard;
         } catch (error) {
-            console.error('Error loading leaderboard from Firestore:', error);
+            console.error('❌ Error loading leaderboard from Firestore:', error);
             // Fallback to localStorage if Firestore fails
             return this.getLocalLeaderboard();
         }
+    }
+    
+    async waitForFirebase() {
+        console.log('Waiting for Firebase to be ready...');
+        let attempts = 0;
+        const maxAttempts = 60; // 30 seconds maximum wait
+        
+        while ((!window.firebaseInitialized || !window.db) && attempts < maxAttempts) {
+            console.log(`Firebase not ready, waiting... (${attempts + 1}/${maxAttempts})`);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
+        }
+        
+        if (!window.firebaseInitialized || !window.db) {
+            throw new Error('Firebase not ready after 30 seconds');
+        }
+        
+        console.log('✅ Firebase is ready!');
     }
     
     getLocalLeaderboard() {
@@ -154,49 +150,22 @@ class LeaderboardManager {
         const newEntry = {
             username: username.trim().substring(0, 15),
             score: score,
-            timestamp: window.db ? firebase.firestore.FieldValue.serverTimestamp() : null,
+            timestamp: null, // Will be set after Firebase is ready
             date: new Date().toISOString()
         };
         
         try {
-            // Use the global Firebase readiness function if available
-            if (typeof window.ensureFirebaseReady === 'function') {
-                console.log('Ensuring Firebase is ready for addScore...');
-                await window.ensureFirebaseReady();
-            } else {
-                console.log('ensureFirebaseReady not available, using fallback...');
-                if (window.firebaseInitPromise) {
-                    await window.firebaseInitPromise;
-                }
-            }
+            console.log('Adding score to leaderboard...');
             
-            // Double check that Firebase is actually ready
-            if (!window.firebaseInitialized || !window.db) {
-                console.log('Firebase not ready, waiting...');
-                // Wait a bit longer and try again
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                if (!window.firebaseInitialized || !window.db) {
-                    throw new Error('Firebase not initialized after waiting');
-                }
-            }
+            // Wait for Firebase to be ready
+            await this.waitForFirebase();
             
-            // Check Firebase connection first
-            if (!this.isOnline || !this.firebaseReady) {
-                if (!window.db) {
-                    throw new Error('Firebase not initialized');
-                }
-                if (!this.isOnline) {
-                    throw new Error('No internet connection');
-                }
-                // Try to reconnect
-                await this.checkFirebaseConnection();
-                if (!this.firebaseReady) {
-                    throw new Error('Firebase connection not ready');
-                }
-            }
+            // Set the timestamp after Firebase is confirmed ready
+            newEntry.timestamp = firebase.firestore.FieldValue.serverTimestamp();
 
             // Add to Firestore
             const docRef = await window.db.collection(this.collectionName).add(newEntry);
+            console.log('✅ Score added to Firestore successfully');
             
             // Get updated leaderboard to find rank
             const leaderboard = await this.getLeaderboard();
@@ -213,7 +182,7 @@ class LeaderboardManager {
             return rank > 0 ? rank : null;
             
         } catch (error) {
-            console.error('Error adding score to Firestore:', error);
+            console.error('❌ Error adding score to Firestore:', error);
             // Fallback to local storage
             return this.addScoreLocal(username.trim().substring(0, 15), score);
         }
@@ -455,10 +424,11 @@ window.addEventListener('load', function(){
     // Initialize leaderboard manager
     const leaderboardManager = new LeaderboardManager();
     
-    // Give Firebase more time to initialize before checking connection
+    // Give Firebase plenty of time to initialize before checking connection
     setTimeout(() => {
+        console.log('Starting delayed Firebase connection check...');
         leaderboardManager.checkFirebaseConnection();
-    }, 3000); // Increased to 3 seconds
+    }, 5000); // Increased to 5 seconds
     
     // Track where leaderboard was opened from
     let leaderboardOpenedFrom = 'start'; 
@@ -796,21 +766,7 @@ window.addEventListener('load', function(){
         leaderboardList.innerHTML = '<div class="loading-leaderboard">Loading leaderboard...</div>';
         
         try {
-            // Add extra wait for Firebase to be ready
-            console.log('DisplayLeaderboard: Checking Firebase status...');
-            if (typeof window.ensureFirebaseReady === 'function') {
-                await window.ensureFirebaseReady();
-                console.log('DisplayLeaderboard: Firebase readiness confirmed');
-            } else {
-                console.log('ensureFirebaseReady not available, using fallback...');
-                if (window.firebaseInitPromise) {
-                    await window.firebaseInitPromise;
-                }
-            }
-            
-            // Give an extra moment for everything to be ready
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
+            console.log('DisplayLeaderboard: Getting leaderboard data...');
             const leaderboard = await leaderboardManager.getLeaderboard();
             
             if (leaderboard.length === 0) {

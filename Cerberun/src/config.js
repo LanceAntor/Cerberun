@@ -1,7 +1,7 @@
 // Firebase Configuration - Using Firebase public keys (safe for client-side)
 // These are public configuration values, not secret keys
 // Security is handled by Firestore security rules
-const firebaseConfig = {
+export const firebaseConfig = {
     apiKey: "AIzaSyCYazXoZnMeNYFwOydpqpOVIF1CS4eHgz4", // This is a public identifier, not a secret
     authDomain: "cerberun-leaderboard.firebaseapp.com",
     projectId: "cerberun-leaderboard",
@@ -11,36 +11,25 @@ const firebaseConfig = {
     measurementId: "G-3Y1Y88EKZP"
 };
 
-// Global flag to track Firebase initialization
-window.firebaseInitialized = false;
-window.firebaseInitPromise = null;
-
-// Debug: Log environment info
-console.log('Environment:', {
-    hostname: window.location.hostname,
-    isProduction: window.location.hostname !== 'localhost',
-    userAgent: navigator.userAgent.substring(0, 50)
-});
-
-// Debug: Log Firebase initialization
-console.log('Starting Firebase initialization with project:', firebaseConfig.projectId);
-
 // Function to initialize Firebase
-function initializeFirebase() {
+export function initializeFirebase() {
     return new Promise((resolve, reject) => {
         try {
             // Check if Firebase libraries are loaded with timeout
             let attempts = 0;
-            const maxAttempts = 50; // 5 seconds maximum wait
+            const maxAttempts = 100; // 10 seconds maximum wait
             
             const checkFirebase = () => {
+                console.log(`Firebase check attempt ${attempts + 1}/${maxAttempts}`);
                 if (typeof firebase !== 'undefined') {
+                    console.log('Firebase library detected, proceeding with initialization...');
                     // Firebase is available, proceed with initialization
                     proceedWithFirebaseInit(resolve, reject);
                 } else {
                     attempts++;
                     if (attempts >= maxAttempts) {
-                        reject(new Error('Firebase library failed to load after 5 seconds'));
+                        console.error('Firebase library failed to load after 10 seconds');
+                        reject(new Error('Firebase library failed to load after 10 seconds'));
                         return;
                     }
                     // Wait 100ms and try again
@@ -105,68 +94,79 @@ function proceedWithFirebaseInit(resolve, reject) {
     }
 }
 
-// Function to handle Firebase promise result
-function handleFirebasePromise(promise) {
-    promise.then((db) => {
-        window.db = db;
-        window.firebaseInitialized = true;
-        console.log('🚀 Firebase setup complete and ready');
-        
-        // Dispatch custom event to notify other scripts
-        window.dispatchEvent(new CustomEvent('firebaseReady', { detail: { db } }));
-    }).catch((error) => {
-        console.error('💥 Firebase setup failed:', error);
-        
-        // Try once more after a delay
-        setTimeout(() => {
-            console.log('🔄 Retrying Firebase initialization...');
-            const retryPromise = initializeFirebase();
-            window.firebaseInitPromise = retryPromise;
-            
-            retryPromise.then((db) => {
-                window.db = db;
-                window.firebaseInitialized = true;
-                console.log('🚀 Firebase setup complete on retry');
-                window.dispatchEvent(new CustomEvent('firebaseReady', { detail: { db } }));
-            }).catch((retryError) => {
-                console.error('💥 Firebase retry failed:', retryError);
-                window.dispatchEvent(new CustomEvent('firebaseError', { detail: { error: retryError } }));
-            });
-        }, 2000);
-        
-        // Dispatch error event for original failure
-        window.dispatchEvent(new CustomEvent('firebaseError', { detail: { error } }));
-    });
-}
+// Export Firebase initialization and setup functions
+export function setupFirebase() {
+    console.log('Setting up Firebase...');
+    
+    // Global flag to track Firebase initialization
+    window.firebaseInitialized = false;
+    window.firebaseInitPromise = null;
 
-// Initialize Firebase when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM loaded, initializing Firebase...');
-        window.firebaseInitPromise = initializeFirebase();
-        handleFirebasePromise(window.firebaseInitPromise);
+    // Debug: Log environment info
+    console.log('Environment:', {
+        hostname: window.location.hostname,
+        isProduction: window.location.hostname !== 'localhost',
+        userAgent: navigator.userAgent.substring(0, 50)
     });
-} else {
-    console.log('DOM already loaded, initializing Firebase...');
+
+    // Debug: Log Firebase initialization
+    console.log('Starting Firebase initialization with project:', firebaseConfig.projectId);
+
+    // Function to handle Firebase promise result
+    function handleFirebasePromise(promise) {
+        promise.then((db) => {
+            window.db = db;
+            window.firebaseInitialized = true;
+            console.log('🚀 Firebase setup complete and ready');
+            
+            // Dispatch custom event to notify other scripts
+            window.dispatchEvent(new CustomEvent('firebaseReady', { detail: { db } }));
+        }).catch((error) => {
+            console.error('💥 Firebase setup failed:', error);
+            
+            // Try once more after a delay
+            setTimeout(() => {
+                console.log('🔄 Retrying Firebase initialization...');
+                const retryPromise = initializeFirebase();
+                window.firebaseInitPromise = retryPromise;
+                
+                retryPromise.then((db) => {
+                    window.db = db;
+                    window.firebaseInitialized = true;
+                    console.log('🚀 Firebase setup complete on retry');
+                    window.dispatchEvent(new CustomEvent('firebaseReady', { detail: { db } }));
+                }).catch((retryError) => {
+                    console.error('💥 Firebase retry failed:', retryError);
+                    window.dispatchEvent(new CustomEvent('firebaseError', { detail: { error: retryError } }));
+                });
+            }, 2000);
+            
+            // Dispatch error event for original failure
+            window.dispatchEvent(new CustomEvent('firebaseError', { detail: { error } }));
+        });
+    }
+
+    // Initialize Firebase
+    console.log('Starting Firebase initialization...');
     window.firebaseInitPromise = initializeFirebase();
     handleFirebasePromise(window.firebaseInitPromise);
-}
 
-// Global function to ensure Firebase is ready for external scripts
-window.ensureFirebaseReady = function() {
-    return new Promise((resolve, reject) => {
-        if (window.firebaseInitialized && window.db) {
-            resolve(window.db);
-            return;
-        }
-        
-        if (window.firebaseInitPromise) {
-            window.firebaseInitPromise.then(resolve).catch(reject);
-        } else {
-            // If no promise exists, create one
-            window.firebaseInitPromise = initializeFirebase();
-            handleFirebasePromise(window.firebaseInitPromise);
-            window.firebaseInitPromise.then(resolve).catch(reject);
-        }
-    });
-};
+    // Global function to ensure Firebase is ready for external scripts
+    window.ensureFirebaseReady = function() {
+        return new Promise((resolve, reject) => {
+            if (window.firebaseInitialized && window.db) {
+                resolve(window.db);
+                return;
+            }
+            
+            if (window.firebaseInitPromise) {
+                window.firebaseInitPromise.then(resolve).catch(reject);
+            } else {
+                // If no promise exists, create one
+                window.firebaseInitPromise = initializeFirebase();
+                handleFirebasePromise(window.firebaseInitPromise);
+                window.firebaseInitPromise.then(resolve).catch(reject);
+            }
+        });
+    };
+}

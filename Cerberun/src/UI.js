@@ -24,7 +24,8 @@ export class UI {
         
         // Stage info
         context.font = this.fontSize * 0.7 + 'px ' + this.fontFamily;
-        context.fillText(`Stage ${this.game.currentStage}`, 20, 110);
+        // Stage counter
+        context.fillText(`Stage ${this.game.currentStage <= 5 ? this.game.currentStage : 'Endless Forest'}`, 20, 110);
         
         //lives
         for (let i = 0; i < this.game.lives; i++){  
@@ -124,21 +125,32 @@ export class UI {
         
         // Main stage text
         context.font = '160px Creepster';
-        const stageText = `STAGE ${this.game.currentStage}`;
+        let stageText;
+        if (this.game.endlessMode) {
+            stageText = "ENDLESS FOREST";
+        } else {
+            stageText = `STAGE ${this.game.currentStage}`;
+        }
         const centerX = this.game.width / 2 + offsetX;
         const centerY = this.game.height / 2 - 50;
         
         context.strokeText(stageText, centerX, centerY);
         context.fillText(stageText, centerX, centerY);
         
-        // Points required text
-        if (this.game.currentStage <= 5) {
+        // Points required text (only show for stages 1-5)
+        if (this.game.currentStage <= 5 && !this.game.endlessMode) {
             context.font = '50px Creepster';
             const targetScore = this.game.getCurrentStageTarget();
             const pointsText = `POINTS REQUIRED: ${targetScore}`;
             
             context.strokeText(pointsText, centerX, centerY + 50);
             context.fillText(pointsText, centerX, centerY + 50);
+        } else if (this.game.endlessMode) {
+            context.font = '50px Creepster';
+            const surviveText = "SURVIVE AS LONG AS YOU CAN!";
+            
+            context.strokeText(surviveText, centerX, centerY + 50);
+            context.fillText(surviveText, centerX, centerY + 50);
         }
         
         // Reset text alignment

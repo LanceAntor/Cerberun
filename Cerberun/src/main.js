@@ -5,7 +5,7 @@ import { FlyingEnemy, GroundEnemy, ClimbingEnemy, SmallSpiderEnemy, ZombieEnemy,
 import { UI } from './UI.js';
 import { CollectibleManager, Clock, Heart } from './collectibles.js';
 import { inject } from "@vercel/analytics";
-import { setupFirebase } from './config.template.js';
+import { setupFirebase } from './config.js';
 
 // Initialize Firebase as soon as possible
 setupFirebase();
@@ -397,6 +397,7 @@ window.addEventListener('load', function(){
     const stage3Sound = document.getElementById('stage3Sound');
     const stage4Sound = document.getElementById('stage4Sound');
     const stage5Sound = document.getElementById('stage5Sound');
+    const endlessForestSound = document.getElementById('endlessForest');
     
     // Initialize leaderboard manager
     const leaderboardManager = new LeaderboardManager();
@@ -616,6 +617,7 @@ window.addEventListener('load', function(){
         game.stageTimer = 0;
         game.stageDisplayTime = 0;
         game.showingStage = false;
+        game.endlessMode = false;
         
         game.player.x = 0;
         game.player.y = game.height - game.player.height - game.groundMargin;
@@ -717,6 +719,7 @@ window.addEventListener('load', function(){
             game.stageTimer = 0;
             game.stageDisplayTime = 0;
             game.showingStage = false;
+            game.endlessMode = false;
             
             game.player.x = 0;
             game.player.y = game.height - game.player.height - game.groundMargin;
@@ -938,6 +941,59 @@ window.addEventListener('load', function(){
             this.stageDisplayTime = 0;
             this.showingStage = false;
             this.stageCheckInterval = 10000; // Check stage every 10 seconds
+            this.endlessMode = false; // Track if we're in endless mode
+            
+            // Difficulty System - stage-based scaling
+            this.difficultySettings = {
+                stage1: {
+                    enemyInterval: 1000,
+                    smallZombieChance: 0.05,
+                    maxEnemiesPerSpawn: 1,
+                    spiderChance: 0.3,
+                    climbingChance: 0.3,
+                    groundChance: 0.4
+                },
+                stage2: {
+                    enemyInterval: 900,
+                    smallZombieChance: 0.15,
+                    maxEnemiesPerSpawn: 1,
+                    spiderChance: 0.35,
+                    climbingChance: 0.35,
+                    groundChance: 0.3
+                },
+                stage3: {
+                    enemyInterval: 800,
+                    smallZombieChance: 0.25,
+                    maxEnemiesPerSpawn: 2,
+                    spiderChance: 0.4,
+                    climbingChance: 0.3,
+                    groundChance: 0.3
+                },
+                stage4: {
+                    enemyInterval: 700,
+                    smallZombieChance: 0.35,
+                    maxEnemiesPerSpawn: 2,
+                    spiderChance: 0.45,
+                    climbingChance: 0.35,
+                    groundChance: 0.2
+                },
+                stage5: {
+                    enemyInterval: 600,
+                    smallZombieChance: 0.45,
+                    maxEnemiesPerSpawn: 3,
+                    spiderChance: 0.5,
+                    climbingChance: 0.3,
+                    groundChance: 0.2
+                },
+                endless: {
+                    enemyInterval: 500,
+                    smallZombieChance: 0.6,
+                    maxEnemiesPerSpawn: 4,
+                    spiderChance: 0.6,
+                    climbingChance: 0.3,
+                    groundChance: 0.1
+                }
+            };
             
             this.player.currentState = this.player.states[1]; 
             this.player.currentState.enter();
@@ -971,7 +1027,11 @@ window.addEventListener('load', function(){
         
         regenerateEnergy(deltaTime) {
             if (this.energy < this.maxEnergy) {
-                this.energy += (this.energyRegenRate * deltaTime) / 1000;
+                // Check if player is sitting (state 0) for increased regeneration
+                const isSitting = this.player.currentState === this.player.states[0];
+                const regenMultiplier = isSitting ? 2.5 : 1; // 2.5x faster when sitting
+                
+                this.energy += (this.energyRegenRate * regenMultiplier * deltaTime) / 1000;
                 if (this.energy > this.maxEnergy) {
                     this.energy = this.maxEnergy;
                 }
@@ -1001,6 +1061,11 @@ window.addEventListener('load', function(){
                     if (this.currentStage <= 5) {
                         this.showStageDisplay();
                         // Reset the stage timer when advancing
+                        this.stageTimer = 0;
+                    } else {
+                        // Entered endless mode after stage 5
+                        this.endlessMode = true;
+                        this.showEndlessDisplay();
                         this.stageTimer = 0;
                     }
                 }
@@ -1050,6 +1115,26 @@ window.addEventListener('load', function(){
             }
         }
         
+        showEndlessDisplay() {
+            this.showingStage = true;
+            this.stageDisplayTime = 0;
+            // Play endless forest sound for endless mode
+            if (soundEnabled && endlessForestSound) {
+                try {
+                    endlessForestSound.currentTime = 0;
+                    endlessForestSound.volume = 0.8;
+                    const playPromise = endlessForestSound.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => {
+                            // Silent error handling
+                        });
+                    }
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+        }
+        
         updateStageDisplay(deltaTime) {
             if (this.showingStage) {
                 this.stageDisplayTime += deltaTime;
@@ -1061,6 +1146,16 @@ window.addEventListener('load', function(){
         
         getCurrentStageTarget() {
             return this.stageTargets[this.currentStage] || 0;
+        }
+        
+        // Get current difficulty settings based on stage
+        getCurrentDifficulty() {
+            if (this.endlessMode) {
+                return this.difficultySettings.endless;
+            }
+            
+            const stageKey = `stage${this.currentStage}`;
+            return this.difficultySettings[stageKey] || this.difficultySettings.stage1;
         }
         
         // Add method to resize game when window resizes
@@ -1093,7 +1188,8 @@ window.addEventListener('load', function(){
             this.regenerateEnergy(deltaTime);
             
             // handleEnemies
-            if(this.enemyTimer > this.enemyInterval){
+            const currentDifficulty = this.getCurrentDifficulty();
+            if(this.enemyTimer > currentDifficulty.enemyInterval){
                 this.addEnemy();
                 this.enemyTimer = 0;
             } else {
@@ -1136,18 +1232,32 @@ window.addEventListener('load', function(){
             this.UI.draw(context);
         }
         addEnemy(){
-            if(this.speed > 0 && Math.random() < 0.5) this.enemies.push(new GroundEnemy(this));
-            else if(this.speed > 0) {
-                if(Math.random() < 0.5) {
-                    this.enemies.push(new ClimbingEnemy(this));
-                } else {
-                    this.enemies.push(new SmallSpiderEnemy(this));
+            const difficulty = this.getCurrentDifficulty();
+            const maxEnemies = difficulty.maxEnemiesPerSpawn;
+            let enemiesToSpawn = Math.floor(Math.random() * maxEnemies) + 1;
+            
+            for (let i = 0; i < enemiesToSpawn; i++) {
+                // Always add a flying enemy and zombie as base
+                this.enemies.push(new FlyingEnemy(this));
+                this.enemies.push(new ZombieEnemy(this));
+                
+                // Add ground-based enemies with stage-based probabilities
+                if (this.speed > 0) {
+                    const rand = Math.random();
+                    
+                    if (rand < difficulty.groundChance) {
+                        this.enemies.push(new GroundEnemy(this));
+                    } else if (rand < difficulty.groundChance + difficulty.climbingChance) {
+                        this.enemies.push(new ClimbingEnemy(this));
+                    } else if (rand < difficulty.groundChance + difficulty.climbingChance + difficulty.spiderChance) {
+                        this.enemies.push(new SmallSpiderEnemy(this));
+                    }
                 }
-            }
-            this.enemies.push(new FlyingEnemy(this), new ZombieEnemy(this));
-            // Add SmallEnemyZombie with a chance of 40%
-            if (Math.random() < 0.1) {
-                this.enemies.push(new SmallEnemyZombie(this));
+                
+                // Add SmallEnemyZombie based on stage difficulty
+                if (Math.random() < difficulty.smallZombieChance) {
+                    this.enemies.push(new SmallEnemyZombie(this));
+                }
             }
         }   
     }

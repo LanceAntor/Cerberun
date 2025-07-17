@@ -396,7 +396,7 @@ export class CollectibleManager {
         if (this.clockSpawnTimer >= this.clockSpawnInterval) {
             this.spawnClock();
             this.clockSpawnTimer = 0;
-            this.clockSpawnInterval = 8000 + Math.random() * 8000; // 
+            this.clockSpawnInterval = 7000 + Math.random() * 7000;
         }
         
         // Check if it's time to spawn a heart
@@ -439,7 +439,7 @@ export class CollectibleManager {
         this.heartSpawnTimer = 0;
         
         // Reset intervals with randomness
-        this.clockSpawnInterval = 8000 + Math.random() * 8000;
+        this.clockSpawnInterval = 7000 + Math.random() * 7000;
         this.heartSpawnInterval = 20000 + Math.random() * 20000;
     }
 }

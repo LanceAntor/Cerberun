@@ -606,7 +606,7 @@ window.addEventListener('load', function(){
         game.collectibleManager.reset(); // Reset collectibles
         game.score = 0;
         game.time = game.startingTime; // Reset to starting time
-        game.lives = 5;
+        game.lives = 3;
         game.energy = 100; // Reset energy
         game.gameOver = false;
         game.gameStarted = true; // Set game started flag

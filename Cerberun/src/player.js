@@ -32,8 +32,19 @@ export class Player {
         this.currentState = null;
         this.sound = document.getElementById('collisionSound');
         this.damageSound = document.getElementById('damageSound');
+        
+        // Invulnerability system
+        this.invulnerable = false;
+        this.invulnerabilityDuration = 3000; // 1 second in milliseconds
+        this.invulnerabilityTimer = 0;
+        this.blinkTimer = 0;
+        this.blinkInterval = 100; // Blink every 100ms during invulnerability
+        this.isVisible = true;
     }
     update(input, deltaTime) {
+        // Update invulnerability
+        this.updateInvulnerability(deltaTime);
+        
         this.checkCollision();
         this.currentState.handleInput(input, deltaTime);
         // horizontal movement
@@ -75,7 +86,11 @@ export class Player {
     }
     draw(context){
         if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
-        context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width,this.height, this.x, this.y, this.width, this.height);
+        
+        // Only draw if visible (for blinking effect during invulnerability)
+        if (this.isVisible) {
+            context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width,this.height, this.x, this.y, this.width, this.height);
+        }
     }
     onGround(){
         return this.y >= this.game.height - this.height - this.game.groundMargin;
@@ -85,25 +100,60 @@ export class Player {
         this.game.speed = this.game.maxSpeed * speed;
         this.currentState.enter();
     }
+    
+    updateInvulnerability(deltaTime) {
+        if (this.invulnerable) {
+            this.invulnerabilityTimer -= deltaTime;
+            this.blinkTimer += deltaTime;
+            
+            // Handle blinking effect
+            if (this.blinkTimer >= this.blinkInterval) {
+                this.isVisible = !this.isVisible;
+                this.blinkTimer = 0;
+            }
+            
+            // End invulnerability
+            if (this.invulnerabilityTimer <= 0) {
+                this.invulnerable = false;
+                this.isVisible = true;
+                this.invulnerabilityTimer = 0;
+                this.blinkTimer = 0;
+            }
+        }
+    }
+    
+    startInvulnerability() {
+        this.invulnerable = true;
+        this.invulnerabilityTimer = this.invulnerabilityDuration;
+        this.blinkTimer = 0;
+        this.isVisible = true;
+    }
+    
     checkCollision(){
         this.game.enemies.forEach(enemy => {
             // Use displayWidth/Height if enemy has scaling, otherwise use normal width/height
             const enemyWidth = enemy.displayWidth || enemy.width;
             const enemyHeight = enemy.displayHeight || enemy.height;
-            
-            if(
+
+            if (
                 enemy.x < this.x + this.width &&
                 enemy.x + enemyWidth > this.x &&
                 enemy.y < this.y + this.height &&
                 enemy.y + enemyHeight > this.y
-            ){
+            ) {
+                // If invulnerable, do nothing (enemy passes through, no effect)
+                if (this.invulnerable) {
+                    return;
+                }
+
                 // collision detected
                 enemy.markedForDeletion = true;
                 this.game.collisions.push(new CollisionAnimation(this.game, enemy.x + enemyWidth * 0.5,
-                enemy.y + enemyHeight * 0.5
+                    enemy.y + enemyHeight * 0.5
                 ));
-                if(this.currentState === this.states[4] || this.currentState === this.states[5]){
-                    // Player successfully defeated enemy - play collision sound
+
+                if (this.currentState === this.states[4] || this.currentState === this.states[5]) {
+                    // Player successfully defeated enemy
                     if (this.game.isSoundEnabled()) {
                         const collisionSound = this.sound.cloneNode(true);
                         collisionSound.volume = 0.5;
@@ -113,8 +163,8 @@ export class Player {
                     this.game.checkForStageAdvancement(); // Check for immediate stage advancement
                     this.game.floatingMessages.push(new FloatingMessages('+1', enemy.x, enemy.y, 150, 50));
                 } else {
-                    // Player took damage - play damage sound only
-                    if(this.game.isSoundEnabled()) {
+                    // Player took damage
+                    if (this.game.isSoundEnabled()) {
                         const playerDamageSound = this.damageSound.cloneNode(true);
                         playerDamageSound.volume = 0.6;
                         playerDamageSound.play().catch(e => console.log('Damage audio play failed:', e));
@@ -122,7 +172,8 @@ export class Player {
                     this.setState(6, 0);
                     this.game.score -= 5;
                     this.game.lives--;
-                    if(this.game.lives <= 0){
+                    this.startInvulnerability(); // Start invulnerability period
+                    if (this.game.lives <= 0) {
                         this.game.gameOver = true;
                     }
                 }

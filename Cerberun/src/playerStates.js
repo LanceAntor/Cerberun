@@ -178,7 +178,9 @@ export class Diving extends State {
     }
     
     createDivingAOE() {
+        // Prevent AOE from defeating enemies if player is invulnerable
         const player = this.game.player;
+        if (player.invulnerable) return;
         const aoeRange = 200; 
         const playerCenterX = player.x + player.width / 2;
         const playerCenterY = player.y + player.height / 2;

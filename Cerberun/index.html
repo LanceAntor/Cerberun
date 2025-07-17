@@ -266,8 +266,21 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
-    <!-- Firebase Configuration will be loaded from config.js -->
-    <script src="./src/config.js"></script>
+    <!-- Firebase Configuration - Use local config for development, production config for deployment -->
+    <script>
+        // Check if we're in local development or production
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            // Local development - load config.local.js
+            const script = document.createElement('script');
+            script.src = './src/config.local.js';
+            document.head.appendChild(script);
+        } else {
+            // Production - load config.js (with environment variables injected by build script)
+            const script = document.createElement('script');
+            script.src = './src/config.js';
+            document.head.appendChild(script);
+        }
+    </script>
     
     <script type="module" src="./src/main.js"></script>
 </body>

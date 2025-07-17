@@ -12,20 +12,54 @@ class LeaderboardManager {
         this.collectionName = 'leaderboard';
         this.maxEntries = 10; // Increased for global leaderboard
         this.isOnline = navigator.onLine;
+        this.firebaseReady = false;
+        
+        // Check if Firebase is available
+        this.checkFirebaseConnection();
         
         // Listen for online/offline events
         window.addEventListener('online', () => {
             this.isOnline = true;
+            this.checkFirebaseConnection();
         });
         window.addEventListener('offline', () => {
             this.isOnline = false;
         });
     }
     
+    async checkFirebaseConnection() {
+        try {
+            if (!window.db) {
+                console.log('Firebase db not available yet');
+                this.firebaseReady = false;
+                return;
+            }
+            
+            // Try a simple read operation to test connection
+            await window.db.collection(this.collectionName).limit(1).get();
+            this.firebaseReady = true;
+            console.log('Firebase connection verified');
+        } catch (error) {
+            console.error('Firebase connection failed:', error);
+            this.firebaseReady = false;
+        }
+    }
+    
     async getLeaderboard() {
         try {
-            if (!this.isOnline) {
-                throw new Error('No internet connection');
+            // Check Firebase connection first
+            if (!this.isOnline || !this.firebaseReady) {
+                if (!window.db) {
+                    throw new Error('Firebase not initialized');
+                }
+                if (!this.isOnline) {
+                    throw new Error('No internet connection');
+                }
+                // Try to reconnect
+                await this.checkFirebaseConnection();
+                if (!this.firebaseReady) {
+                    throw new Error('Firebase connection not ready');
+                }
             }
 
             const snapshot = await db.collection(this.collectionName)
@@ -80,8 +114,19 @@ class LeaderboardManager {
         };
         
         try {
-            if (!this.isOnline) {
-                throw new Error('No internet connection');
+            // Check Firebase connection first
+            if (!this.isOnline || !this.firebaseReady) {
+                if (!window.db) {
+                    throw new Error('Firebase not initialized');
+                }
+                if (!this.isOnline) {
+                    throw new Error('No internet connection');
+                }
+                // Try to reconnect
+                await this.checkFirebaseConnection();
+                if (!this.firebaseReady) {
+                    throw new Error('Firebase connection not ready');
+                }
             }
 
             // Add to Firestore

@@ -6,59 +6,123 @@ import { UI } from './UI.js';
 import { CollectibleManager, Clock, Heart } from './collectibles.js';
 import { inject } from "@vercel/analytics"
 
-// Leaderboard System
+// Firestore Leaderboard System
 class LeaderboardManager {
     constructor() {
-        this.storageKey = 'cerberun_leaderboard';
-        this.maxEntries = 5;
+        this.collectionName = 'leaderboard';
+        this.maxEntries = 10; // Increased for global leaderboard
+        this.isOnline = navigator.onLine;
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+        });
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+        });
     }
     
-    getLeaderboard() {
+    async getLeaderboard() {
         try {
-            const stored = localStorage.getItem(this.storageKey);
+            if (!this.isOnline) {
+                throw new Error('No internet connection');
+            }
+
+            const snapshot = await db.collection(this.collectionName)
+                .orderBy('score', 'desc')
+                .limit(this.maxEntries)
+                .get();
+            
+            const leaderboard = [];
+            snapshot.forEach(doc => {
+                leaderboard.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            return leaderboard;
+        } catch (error) {
+            console.error('Error loading leaderboard from Firestore:', error);
+            // Fallback to localStorage if Firestore fails
+            return this.getLocalLeaderboard();
+        }
+    }
+    
+    getLocalLeaderboard() {
+        try {
+            const stored = localStorage.getItem('cerberun_leaderboard_backup');
             return stored ? JSON.parse(stored) : [];
         } catch (error) {
-            console.error('Error loading leaderboard:', error);
+            console.error('Error loading local leaderboard:', error);
             return [];
         }
     }
     
-    saveLeaderboard(leaderboard) {
+    saveLocalLeaderboard(leaderboard) {
         try {
-            localStorage.setItem(this.storageKey, JSON.stringify(leaderboard));
-            return true;
+            localStorage.setItem('cerberun_leaderboard_backup', JSON.stringify(leaderboard));
         } catch (error) {
-            console.error('Error saving leaderboard:', error);
-            return false;
+            console.error('Error saving local leaderboard:', error);
         }
     }
     
-    addScore(username, score) {
+    async addScore(username, score) {
         if (!username || username.trim() === '') {
             username = 'Anonymous';
         }
         
-        const leaderboard = this.getLeaderboard();
         const newEntry = {
-            username: username.trim().substring(0, 15), // Limit username length
+            username: username.trim().substring(0, 15),
             score: score,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             date: new Date().toISOString()
         };
         
-        // Add new entry
+        try {
+            if (!this.isOnline) {
+                throw new Error('No internet connection');
+            }
+
+            // Add to Firestore
+            const docRef = await db.collection(this.collectionName).add(newEntry);
+            
+            // Get updated leaderboard to find rank
+            const leaderboard = await this.getLeaderboard();
+            
+            // Also save to local storage as backup
+            this.saveLocalLeaderboard(leaderboard);
+            
+            // Find rank
+            const rank = leaderboard.findIndex(entry => entry.id === docRef.id) + 1;
+            
+            // Clean up old entries (keep only top entries)
+            this.cleanupOldEntries();
+            
+            return rank > 0 ? rank : null;
+            
+        } catch (error) {
+            console.error('Error adding score to Firestore:', error);
+            // Fallback to local storage
+            return this.addScoreLocal(username.trim().substring(0, 15), score);
+        }
+    }
+    
+    addScoreLocal(username, score) {
+        const leaderboard = this.getLocalLeaderboard();
+        const newEntry = {
+            username: username,
+            score: score,
+            date: new Date().toISOString(),
+            isLocal: true
+        };
+        
         leaderboard.push(newEntry);
-        
-        // Sort by score (highest first)
         leaderboard.sort((a, b) => b.score - a.score);
+        const trimmed = leaderboard.slice(0, this.maxEntries);
+        this.saveLocalLeaderboard(trimmed);
         
-        // Keep only top entries
-        const trimmedLeaderboard = leaderboard.slice(0, this.maxEntries);
-        
-        // Save back to localStorage
-        this.saveLeaderboard(trimmedLeaderboard);
-        
-        // Return the rank of the new entry (1-based)
-        const rank = trimmedLeaderboard.findIndex(entry => 
+        const rank = trimmed.findIndex(entry => 
             entry.username === newEntry.username && 
             entry.score === newEntry.score &&
             entry.date === newEntry.date
@@ -67,24 +131,78 @@ class LeaderboardManager {
         return rank > 0 ? rank : null;
     }
     
-    isHighScore(score) {
-        const leaderboard = this.getLeaderboard();
-        if (leaderboard.length < this.maxEntries) {
-            return true; // Always a high score if leaderboard isn't full
+    async cleanupOldEntries() {
+        try {
+            // Get all entries ordered by score
+            const snapshot = await db.collection(this.collectionName)
+                .orderBy('score', 'desc')
+                .get();
+            
+            // If we have more than maxEntries, delete the excess
+            if (snapshot.size > this.maxEntries) {
+                const batch = db.batch();
+                const docs = snapshot.docs;
+                
+                // Delete entries beyond maxEntries (keep only top entries)
+                for (let i = this.maxEntries; i < docs.length; i++) {
+                    batch.delete(docs[i].ref);
+                }
+                
+                await batch.commit();
+            }
+        } catch (error) {
+            console.error('Error cleaning up old entries:', error);
         }
-        return score > leaderboard[leaderboard.length - 1].score;
     }
     
-    clearLeaderboard() {
-        localStorage.removeItem(this.storageKey);
+    async isHighScore(score) {
+        try {
+            const leaderboard = await this.getLeaderboard();
+            if (leaderboard.length < this.maxEntries) {
+                return true;
+            }
+            return score > leaderboard[leaderboard.length - 1].score;
+        } catch (error) {
+            console.error('Error checking high score:', error);
+            return true; // Assume it's a high score if we can't check
+        }
+    }
+    
+    async clearLeaderboard() {
+        try {
+            const batch = db.batch();
+            const snapshot = await db.collection(this.collectionName).get();
+            
+            snapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            
+            await batch.commit();
+            localStorage.removeItem('cerberun_leaderboard_backup');
+        } catch (error) {
+            console.error('Error clearing leaderboard:', error);
+        }
     }
 }
 
-// Comprehensive zoom prevention
+// Comprehensive zoom prevention and console access blocking
 document.addEventListener('DOMContentLoaded', function() {
     // Prevent zoom with keyboard shortcuts
     document.addEventListener('keydown', function(e) {
+        // Block zoom shortcuts
         if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '0')) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Block developer tools shortcuts
+        if (e.key === 'F12' || 
+            (e.ctrlKey && e.shiftKey && e.key === 'I') || // Chrome DevTools
+            (e.ctrlKey && e.shiftKey && e.key === 'J') || // Chrome Console
+            (e.ctrlKey && e.shiftKey && e.key === 'C') || // Chrome Element Inspector
+            (e.ctrlKey && e.key === 'U') || // View Source
+            (e.ctrlKey && e.shiftKey && e.key === 'K') || // Firefox Console
+            (e.key === 'F7')) { // Caret browsing
             e.preventDefault();
             return false;
         }
@@ -120,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         lastTouchEnd = now;
     }, false);
 
-    // Prevent context menu
+    // Prevent context menu (right-click)
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
     });
@@ -129,7 +247,61 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('dragstart', function(e) {
         e.preventDefault();
     });
+
+    // Prevent selection of text
+    document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+    });
+
+    // Additional console blocking methods
+    setInterval(function() {
+        // Detect if developer tools are open
+        let devtools = {
+            open: false,
+            orientation: null
+        };
+        
+        let threshold = 160;
+        setInterval(function() {
+            if (window.outerHeight - window.innerHeight > threshold || 
+                window.outerWidth - window.innerWidth > threshold) {
+                devtools.open = true;
+                // Redirect or close tab when dev tools detected
+                window.location.href = 'about:blank';
+            }
+        }, 500);
+    }, 1000);
+
+    // Block common console access attempts
+    Object.defineProperty(window, 'console', {
+        value: Object.freeze({
+            log: function() {},
+            warn: function() {},
+            error: function() {},
+            info: function() {},
+            debug: function() {},
+            clear: function() {},
+            dir: function() {},
+            dirxml: function() {},
+            table: function() {},
+            trace: function() {},
+            group: function() {},
+            groupCollapsed: function() {},
+            groupEnd: function() {},
+            time: function() {},
+            timeLog: function() {},
+            timeEnd: function() {},
+            profile: function() {},
+            profileEnd: function() {},
+            count: function() {},
+            countReset: function() {},
+            assert: function() {}
+        }),
+        writable: false,
+        configurable: false
+    });
 });
+
 
 window.addEventListener('load', function(){
     const canvas = document.getElementById('canvas1');
@@ -499,42 +671,57 @@ window.addEventListener('load', function(){
     }
     
     // Leaderboard Functions
-    function displayLeaderboard() {
-        const leaderboard = leaderboardManager.getLeaderboard();
+    async function displayLeaderboard() {
         const currentUsername = usernameInput.value.trim() || 'Anonymous';
         
-        if (leaderboard.length === 0) {
-            leaderboardList.innerHTML = '<div class="empty-leaderboard">No scores yet. Be the first to play!</div>';
-            return;
-        }
+        // Show loading state
+        leaderboardList.innerHTML = '<div class="loading-leaderboard">Loading leaderboard...</div>';
         
-        leaderboardList.innerHTML = '';
-        
-        leaderboard.forEach((entry, index) => {
-            const entryDiv = document.createElement('div');
-            entryDiv.className = 'leaderboard-entry';
+        try {
+            const leaderboard = await leaderboardManager.getLeaderboard();
             
-            // Highlight current user's entry
-            if (entry.username === currentUsername) {
-                entryDiv.classList.add('current-user');
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<div class="empty-leaderboard">No scores yet. Be the first to play!</div>';
+                return;
             }
             
-            const rank = index + 1;
-            let rankDisplay = rank;
+            leaderboardList.innerHTML = '';
             
-            // Add medals for top 3
-            if (rank === 1) rankDisplay = '🥇 1';
-            else if (rank === 2) rankDisplay = '🥈 2';
-            else if (rank === 3) rankDisplay = '🥉 3';
-            
-            entryDiv.innerHTML = `
-                <div class="rank">${rankDisplay}</div>
-                <div class="username">${entry.username}</div>
-                <div class="score">${entry.score}</div>
-            `;
-            
-            leaderboardList.appendChild(entryDiv);
-        });
+            leaderboard.forEach((entry, index) => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'leaderboard-entry';
+                
+                // Highlight current user's entry
+                if (entry.username === currentUsername) {
+                    entryDiv.classList.add('current-user');
+                }
+                
+                // Add local indicator if offline score
+                if (entry.isLocal) {
+                    entryDiv.classList.add('local-entry');
+                }
+                
+                const rank = index + 1;
+                let rankDisplay = rank;
+                
+                // Add medals for top 3
+                if (rank === 1) rankDisplay = '🥇 1';
+                else if (rank === 2) rankDisplay = '🥈 2';
+                else if (rank === 3) rankDisplay = '🥉 3';
+                
+                const localIndicator = entry.isLocal ? ' <span class="local-badge">(Offline)</span>' : '';
+                
+                entryDiv.innerHTML = `
+                    <div class="rank">${rankDisplay}</div>
+                    <div class="username">${entry.username}${localIndicator}</div>
+                    <div class="score">${entry.score}</div>
+                `;
+                
+                leaderboardList.appendChild(entryDiv);
+            });
+        } catch (error) {
+            leaderboardList.innerHTML = '<div class="error-leaderboard">Failed to load leaderboard. Check your connection.</div>';
+        }
     }
     
     function openLeaderboard() {
@@ -552,53 +739,57 @@ window.addEventListener('load', function(){
         }
     }
     
-    function handleGameOver() {
+    async function handleGameOver() {
         const finalGameScore = game.score;
         const username = usernameInput.value.trim() || 'Anonymous';
         
-        // Add score to leaderboard
-        const rank = leaderboardManager.addScore(username, finalGameScore);
-        
-        // Show game over modal
+        // Show game over modal first
         finalScore.textContent = finalGameScore;
-        
-        // Add high score notification if applicable
-        if (rank && rank <= leaderboardManager.maxEntries) {
-            const highScoreMsg = document.createElement('div');
-            highScoreMsg.className = 'high-score-notification';
-            highScoreMsg.innerHTML = `NEW HIGH SCORE!<br>Rank #${rank} `;
-            highScoreMsg.style.cssText = `
-                color: #ffd700;
-                font-size: 1.2rem;
-                font-weight: bold;
-                margin-top: 15px;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                animation: pulse 1s infinite alternate;
-            `;
-            
-            // Add CSS animation if not exists
-            if (!document.querySelector('#highScoreAnimation')) {
-                const style = document.createElement('style');
-                style.id = 'highScoreAnimation';
-                style.textContent = `
-                    @keyframes pulse {
-                        from { opacity: 0.8; transform: scale(1); }
-                        to { opacity: 1; transform: scale(1.05); }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-            
-            const scoreDisplay = document.querySelector('.score-display');
-            // Remove any existing high score notification
-            const existingNotification = scoreDisplay.querySelector('.high-score-notification');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-            scoreDisplay.appendChild(highScoreMsg);
-        }
-        
         gameOverModal.classList.remove('hidden');
+        
+        try {
+            // Add score to leaderboard (async)
+            const rank = await leaderboardManager.addScore(username, finalGameScore);
+            
+            // Add high score notification if applicable
+            if (rank && rank <= leaderboardManager.maxEntries) {
+                const highScoreMsg = document.createElement('div');
+                highScoreMsg.className = 'high-score-notification';
+                highScoreMsg.innerHTML = `NEW HIGH SCORE!<br>Global Rank #${rank}`;
+                highScoreMsg.style.cssText = `
+                    color: #ffd700;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    margin-top: 15px;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                    animation: pulse 1s infinite alternate;
+                `;
+                
+                // Add CSS animation if not exists
+                if (!document.querySelector('#highScoreAnimation')) {
+                    const style = document.createElement('style');
+                    style.id = 'highScoreAnimation';
+                    style.textContent = `
+                        @keyframes pulse {
+                            from { opacity: 0.8; transform: scale(1); }
+                            to { opacity: 1; transform: scale(1.05); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                const scoreDisplay = document.querySelector('.score-display');
+                // Remove any existing high score notification
+                const existingNotification = scoreDisplay.querySelector('.high-score-notification');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+                scoreDisplay.appendChild(highScoreMsg);
+            }
+        } catch (error) {
+            console.error('Error handling game over:', error);
+            // The modal is already shown, so the game can continue
+        }
     }
     
     function showGameOverModal() {

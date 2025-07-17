@@ -1,25 +1,15 @@
-# Logs
-logs
-*.log
+# Dependencies
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Dependencies
-node_modules
-dist
-dist-ssr
-*.local
+package-lock.json
 
 # Firebase
 .firebase/
 firebase-debug.log
 firestore-debug.log
 .firebaserc
-# Firebase config with sensitive data
-src/config.js
 
 # Environment variables
 .env
@@ -29,23 +19,24 @@ src/config.js
 .env.production.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # OS generated files
+.DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Logs
+logs
+*.log
 
 # Runtime data
 pids
@@ -57,6 +48,7 @@ pids
 coverage/
 
 # Build outputs
+dist/
 build/
 
 # Temporary folders

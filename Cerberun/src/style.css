@@ -811,3 +811,29 @@ body {
         font-size: 1.1rem;
     }
 }
+
+/* Firebase Leaderboard Styles */
+.loading-leaderboard, .error-leaderboard {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.error-leaderboard {
+    color: #ff6b6b;
+}
+
+.local-badge {
+    font-size: 0.8em;
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 5px;
+}
+
+.local-entry {
+    opacity: 0.8;
+    border-left: 3px solid #ffc107;
+}

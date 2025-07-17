@@ -29,51 +29,27 @@ console.log('Starting Firebase initialization with project:', firebaseConfig.pro
 function initializeFirebase() {
     return new Promise((resolve, reject) => {
         try {
-            // Check if Firebase libraries are loaded
-            if (typeof firebase === 'undefined') {
-                throw new Error('Firebase library not loaded');
-            }
-
-            // Check if Firebase is already initialized
-            if (window.firebaseInitialized) {
-                console.log('Firebase already initialized');
-                resolve(window.db);
-                return;
-            }
-
-            console.log('Initializing Firebase app...');
-            // Initialize Firebase
-            firebase.initializeApp(firebaseConfig);
-            console.log('Firebase app initialized successfully');
-
-            console.log('Initializing Firestore...');
-            // Initialize Firestore
-            const db = firebase.firestore();
+            // Check if Firebase libraries are loaded with timeout
+            let attempts = 0;
+            const maxAttempts = 50; // 5 seconds maximum wait
             
-            // Set Firestore settings for better performance
-            db.settings({
-                cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
-            });
+            const checkFirebase = () => {
+                if (typeof firebase !== 'undefined') {
+                    // Firebase is available, proceed with initialization
+                    proceedWithFirebaseInit(resolve, reject);
+                } else {
+                    attempts++;
+                    if (attempts >= maxAttempts) {
+                        reject(new Error('Firebase library failed to load after 5 seconds'));
+                        return;
+                    }
+                    // Wait 100ms and try again
+                    setTimeout(checkFirebase, 100);
+                }
+            };
             
-            console.log('Firestore initialized, enabling network...');
-            // Enable network for Firestore (important for Vercel)
-            db.enableNetwork().then(() => {
-                console.log('✅ Firestore network enabled successfully');
-                window.db = db;
-                window.firebaseInitialized = true;
-                
-                // Test connection with a simple read
-                return db.collection('leaderboard').limit(1).get();
-            }).then(() => {
-                console.log('✅ Firebase connection test successful');
-                resolve(db);
-            }).catch((networkError) => {
-                console.warn('⚠️ Firestore network enable failed, but continuing:', networkError);
-                window.db = db; // Still set db even if network enable fails
-                window.firebaseInitialized = true;
-                resolve(db);
-            });
-
+            checkFirebase();
+            
         } catch (error) {
             console.error('❌ Firebase initialization failed:', error);
             reject(error);
@@ -81,20 +57,57 @@ function initializeFirebase() {
     });
 }
 
-// Initialize Firebase when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM loaded, initializing Firebase...');
-        window.firebaseInitPromise = initializeFirebase();
-    });
-} else {
-    console.log('DOM already loaded, initializing Firebase...');
-    window.firebaseInitPromise = initializeFirebase();
+function proceedWithFirebaseInit(resolve, reject) {
+    try {
+        // Check if Firebase is already initialized
+        if (window.firebaseInitialized) {
+            console.log('Firebase already initialized');
+            resolve(window.db);
+            return;
+        }
+
+        console.log('Initializing Firebase app...');
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        console.log('Firebase app initialized successfully');
+
+        console.log('Initializing Firestore...');
+        // Initialize Firestore
+        const db = firebase.firestore();
+        
+        // Set Firestore settings for better performance
+        db.settings({
+            cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+        });
+        
+        console.log('Firestore initialized, enabling network...');
+        // Enable network for Firestore (important for Vercel)
+        db.enableNetwork().then(() => {
+            console.log('✅ Firestore network enabled successfully');
+            window.db = db;
+            window.firebaseInitialized = true;
+            
+            // Test connection with a simple read
+            return db.collection('leaderboard').limit(1).get();
+        }).then(() => {
+            console.log('✅ Firebase connection test successful');
+            resolve(db);
+        }).catch((networkError) => {
+            console.warn('⚠️ Firestore network enable failed, but continuing:', networkError);
+            window.db = db; // Still set db even if network enable fails
+            window.firebaseInitialized = true;
+            resolve(db);
+        });
+
+    } catch (error) {
+        console.error('❌ Firebase initialization failed:', error);
+        reject(error);
+    }
 }
 
-// Also expose db globally for immediate access with retry mechanism
-if (window.firebaseInitPromise) {
-    window.firebaseInitPromise.then((db) => {
+// Function to handle Firebase promise result
+function handleFirebasePromise(promise) {
+    promise.then((db) => {
         window.db = db;
         window.firebaseInitialized = true;
         console.log('🚀 Firebase setup complete and ready');
@@ -107,8 +120,10 @@ if (window.firebaseInitPromise) {
         // Try once more after a delay
         setTimeout(() => {
             console.log('🔄 Retrying Firebase initialization...');
-            window.firebaseInitPromise = initializeFirebase();
-            window.firebaseInitPromise.then((db) => {
+            const retryPromise = initializeFirebase();
+            window.firebaseInitPromise = retryPromise;
+            
+            retryPromise.then((db) => {
                 window.db = db;
                 window.firebaseInitialized = true;
                 console.log('🚀 Firebase setup complete on retry');
@@ -123,3 +138,35 @@ if (window.firebaseInitPromise) {
         window.dispatchEvent(new CustomEvent('firebaseError', { detail: { error } }));
     });
 }
+
+// Initialize Firebase when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing Firebase...');
+        window.firebaseInitPromise = initializeFirebase();
+        handleFirebasePromise(window.firebaseInitPromise);
+    });
+} else {
+    console.log('DOM already loaded, initializing Firebase...');
+    window.firebaseInitPromise = initializeFirebase();
+    handleFirebasePromise(window.firebaseInitPromise);
+}
+
+// Global function to ensure Firebase is ready for external scripts
+window.ensureFirebaseReady = function() {
+    return new Promise((resolve, reject) => {
+        if (window.firebaseInitialized && window.db) {
+            resolve(window.db);
+            return;
+        }
+        
+        if (window.firebaseInitPromise) {
+            window.firebaseInitPromise.then(resolve).catch(reject);
+        } else {
+            // If no promise exists, create one
+            window.firebaseInitPromise = initializeFirebase();
+            handleFirebasePromise(window.firebaseInitPromise);
+            window.firebaseInitPromise.then(resolve).catch(reject);
+        }
+    });
+};

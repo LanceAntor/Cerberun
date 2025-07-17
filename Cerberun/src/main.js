@@ -42,10 +42,15 @@ class LeaderboardManager {
     
     async checkFirebaseConnection() {
         try {
-            // Wait for Firebase to be initialized first
-            if (window.firebaseInitPromise) {
-                console.log('Waiting for Firebase initialization in checkConnection...');
-                await window.firebaseInitPromise;
+            // Use the global Firebase readiness function if available
+            if (typeof window.ensureFirebaseReady === 'function') {
+                console.log('Ensuring Firebase is ready...');
+                await window.ensureFirebaseReady();
+            } else {
+                console.log('ensureFirebaseReady not available, waiting for firebaseInitPromise...');
+                if (window.firebaseInitPromise) {
+                    await window.firebaseInitPromise;
+                }
             }
             
             if (!window.firebaseInitialized || !window.db) {
@@ -66,11 +71,15 @@ class LeaderboardManager {
     
     async getLeaderboard() {
         try {
-            // Wait for Firebase initialization first
-            if (window.firebaseInitPromise) {
-                console.log('Waiting for Firebase initialization...');
-                await window.firebaseInitPromise;
-                console.log('Firebase initialization promise resolved');
+            // Use the global Firebase readiness function if available
+            if (typeof window.ensureFirebaseReady === 'function') {
+                console.log('Ensuring Firebase is ready for getLeaderboard...');
+                await window.ensureFirebaseReady();
+            } else {
+                console.log('ensureFirebaseReady not available, using fallback...');
+                if (window.firebaseInitPromise) {
+                    await window.firebaseInitPromise;
+                }
             }
             
             // Double check that Firebase is actually ready
@@ -150,11 +159,15 @@ class LeaderboardManager {
         };
         
         try {
-            // Wait for Firebase initialization first
-            if (window.firebaseInitPromise) {
-                console.log('Waiting for Firebase initialization...');
-                await window.firebaseInitPromise;
-                console.log('Firebase initialization promise resolved');
+            // Use the global Firebase readiness function if available
+            if (typeof window.ensureFirebaseReady === 'function') {
+                console.log('Ensuring Firebase is ready for addScore...');
+                await window.ensureFirebaseReady();
+            } else {
+                console.log('ensureFirebaseReady not available, using fallback...');
+                if (window.firebaseInitPromise) {
+                    await window.firebaseInitPromise;
+                }
             }
             
             // Double check that Firebase is actually ready
@@ -785,10 +798,14 @@ window.addEventListener('load', function(){
         try {
             // Add extra wait for Firebase to be ready
             console.log('DisplayLeaderboard: Checking Firebase status...');
-            if (window.firebaseInitPromise) {
-                console.log('DisplayLeaderboard: Waiting for Firebase...');
-                await window.firebaseInitPromise;
-                console.log('DisplayLeaderboard: Firebase promise resolved');
+            if (typeof window.ensureFirebaseReady === 'function') {
+                await window.ensureFirebaseReady();
+                console.log('DisplayLeaderboard: Firebase readiness confirmed');
+            } else {
+                console.log('ensureFirebaseReady not available, using fallback...');
+                if (window.firebaseInitPromise) {
+                    await window.firebaseInitPromise;
+                }
             }
             
             // Give an extra moment for everything to be ready

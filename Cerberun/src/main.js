@@ -160,6 +160,13 @@ window.addEventListener('load', function(){
     const buttonClickSound = document.getElementById('buttonClickSound');
     const buttonHoverSound = document.getElementById('buttonHoverSound');
     
+    // Stage sound elements
+    const stage1Sound = document.getElementById('stage1Sound');
+    const stage2Sound = document.getElementById('stage2Sound');
+    const stage3Sound = document.getElementById('stage3Sound');
+    const stage4Sound = document.getElementById('stage4Sound');
+    const stage5Sound = document.getElementById('stage5Sound');
+    
     // Initialize leaderboard manager
     const leaderboardManager = new LeaderboardManager();
     
@@ -748,6 +755,44 @@ window.addEventListener('load', function(){
         showStageDisplay() {
             this.showingStage = true;
             this.stageDisplayTime = 0;
+            
+            // Play stage sound when stage is displayed
+            if (soundEnabled) {
+                let stageSound = null;
+                
+                switch(this.currentStage) {
+                    case 1:
+                        stageSound = stage1Sound;
+                        break;
+                    case 2:
+                        stageSound = stage2Sound;
+                        break;
+                    case 3:
+                        stageSound = stage3Sound;
+                        break;
+                    case 4:
+                        stageSound = stage4Sound;
+                        break;
+                    case 5:
+                        stageSound = stage5Sound;
+                        break;
+                }
+                
+                if (stageSound) {
+                    try {
+                        stageSound.currentTime = 0;
+                        stageSound.volume = 0.8;
+                        const playPromise = stageSound.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(e => {
+                                // Silent error handling
+                            });
+                        }
+                    } catch (error) {
+                        // Silent error handling
+                    }
+                }
+            }
         }
         
         updateStageDisplay(deltaTime) {

@@ -42,12 +42,13 @@ class LeaderboardManager {
     
     async checkFirebaseConnection() {
         try {
-            // Wait for Firebase to be initialized
+            // Wait for Firebase to be initialized first
             if (window.firebaseInitPromise) {
+                console.log('Waiting for Firebase initialization in checkConnection...');
                 await window.firebaseInitPromise;
             }
             
-            if (!window.db) {
+            if (!window.firebaseInitialized || !window.db) {
                 console.log('Firebase db not available yet');
                 this.firebaseReady = false;
                 return;
@@ -67,7 +68,19 @@ class LeaderboardManager {
         try {
             // Wait for Firebase initialization first
             if (window.firebaseInitPromise) {
+                console.log('Waiting for Firebase initialization...');
                 await window.firebaseInitPromise;
+                console.log('Firebase initialization promise resolved');
+            }
+            
+            // Double check that Firebase is actually ready
+            if (!window.firebaseInitialized || !window.db) {
+                console.log('Firebase not ready, waiting...');
+                // Wait a bit longer and try again
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!window.firebaseInitialized || !window.db) {
+                    throw new Error('Firebase not initialized after waiting');
+                }
             }
             
             // Check Firebase connection first
@@ -132,14 +145,26 @@ class LeaderboardManager {
         const newEntry = {
             username: username.trim().substring(0, 15),
             score: score,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: window.db ? firebase.firestore.FieldValue.serverTimestamp() : null,
             date: new Date().toISOString()
         };
         
         try {
             // Wait for Firebase initialization first
             if (window.firebaseInitPromise) {
+                console.log('Waiting for Firebase initialization...');
                 await window.firebaseInitPromise;
+                console.log('Firebase initialization promise resolved');
+            }
+            
+            // Double check that Firebase is actually ready
+            if (!window.firebaseInitialized || !window.db) {
+                console.log('Firebase not ready, waiting...');
+                // Wait a bit longer and try again
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!window.firebaseInitialized || !window.db) {
+                    throw new Error('Firebase not initialized after waiting');
+                }
             }
             
             // Check Firebase connection first
@@ -417,10 +442,10 @@ window.addEventListener('load', function(){
     // Initialize leaderboard manager
     const leaderboardManager = new LeaderboardManager();
     
-    // Give Firebase a moment to initialize before checking connection
+    // Give Firebase more time to initialize before checking connection
     setTimeout(() => {
         leaderboardManager.checkFirebaseConnection();
-    }, 1000);
+    }, 3000); // Increased to 3 seconds
     
     // Track where leaderboard was opened from
     let leaderboardOpenedFrom = 'start'; 
@@ -758,6 +783,17 @@ window.addEventListener('load', function(){
         leaderboardList.innerHTML = '<div class="loading-leaderboard">Loading leaderboard...</div>';
         
         try {
+            // Add extra wait for Firebase to be ready
+            console.log('DisplayLeaderboard: Checking Firebase status...');
+            if (window.firebaseInitPromise) {
+                console.log('DisplayLeaderboard: Waiting for Firebase...');
+                await window.firebaseInitPromise;
+                console.log('DisplayLeaderboard: Firebase promise resolved');
+            }
+            
+            // Give an extra moment for everything to be ready
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             const leaderboard = await leaderboardManager.getLeaderboard();
             
             if (leaderboard.length === 0) {

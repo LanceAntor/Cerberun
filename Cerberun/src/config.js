@@ -92,10 +92,11 @@ if (document.readyState === 'loading') {
     window.firebaseInitPromise = initializeFirebase();
 }
 
-// Also expose db globally for immediate access
+// Also expose db globally for immediate access with retry mechanism
 if (window.firebaseInitPromise) {
     window.firebaseInitPromise.then((db) => {
         window.db = db;
+        window.firebaseInitialized = true;
         console.log('🚀 Firebase setup complete and ready');
         
         // Dispatch custom event to notify other scripts
@@ -103,7 +104,22 @@ if (window.firebaseInitPromise) {
     }).catch((error) => {
         console.error('💥 Firebase setup failed:', error);
         
-        // Dispatch error event
+        // Try once more after a delay
+        setTimeout(() => {
+            console.log('🔄 Retrying Firebase initialization...');
+            window.firebaseInitPromise = initializeFirebase();
+            window.firebaseInitPromise.then((db) => {
+                window.db = db;
+                window.firebaseInitialized = true;
+                console.log('🚀 Firebase setup complete on retry');
+                window.dispatchEvent(new CustomEvent('firebaseReady', { detail: { db } }));
+            }).catch((retryError) => {
+                console.error('💥 Firebase retry failed:', retryError);
+                window.dispatchEvent(new CustomEvent('firebaseError', { detail: { error: retryError } }));
+            });
+        }, 2000);
+        
+        // Dispatch error event for original failure
         window.dispatchEvent(new CustomEvent('firebaseError', { detail: { error } }));
     });
 }

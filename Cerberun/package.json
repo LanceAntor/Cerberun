@@ -8,9 +8,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "node build-config.js && vite build",
-    "preview": "vite preview",
-    "build-config": "node build-config.js"
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@vercel/analytics": "^1.5.0",

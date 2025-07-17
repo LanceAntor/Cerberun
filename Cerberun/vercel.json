@@ -1,13 +1,8 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "vite build",
   "outputDirectory": "dist",
-  "devCommand": "npm run dev",
+  "devCommand": "vite dev",
   "installCommand": "npm install",
-  "functions": {
-    "build-config.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "headers": [
     {
       "source": "/src/assets/sound/(.*)",

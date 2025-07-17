@@ -1,13 +1,14 @@
-// Firebase Configuration - Safe placeholder values for GitHub
-// Real values will be injected by build script on Vercel using environment variables
+// Firebase Configuration - Using Firebase public keys (safe for client-side)
+// These are public configuration values, not secret keys
+// Security is handled by Firestore security rules
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project.firebasestorage.app",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef123456",
-    measurementId: "G-ABCDEF123"
+    apiKey: "AIzaSyCYazXoZnMeNYFwOydpqpOVIF1CS4eHgz4", // This is a public identifier, not a secret
+    authDomain: "cerberun-leaderboard.firebaseapp.com",
+    projectId: "cerberun-leaderboard",
+    storageBucket: "cerberun-leaderboard.firebasestorage.app",
+    messagingSenderId: "377867420913",
+    appId: "1:377867420913:web:eb982b90fcc2cb835cd550",
+    measurementId: "G-3Y1Y88EKZP"
 };
 
 // Debug: Log Firebase initialization

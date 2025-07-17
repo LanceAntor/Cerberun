@@ -18,10 +18,7 @@ dist-ssr
 firebase-debug.log
 firestore-debug.log
 .firebaserc
-# Config file is now safe to track with placeholder values
-# Real values injected at build time via environment variables
-# Local development config with real keys (not tracked)
-src/config.local.js
+# Firebase API keys are public (client-side) identifiers, security handled by Firestore rules
 
 # Environment variables
 .env

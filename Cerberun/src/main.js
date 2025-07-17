@@ -1029,7 +1029,7 @@ window.addEventListener('load', function(){
             if (this.energy < this.maxEnergy) {
                 // Check if player is sitting (state 0) for increased regeneration
                 const isSitting = this.player.currentState === this.player.states[0];
-                const regenMultiplier = isSitting ? 2.5 : 1; // 2.5x faster when sitting
+                const regenMultiplier = isSitting ? 1.5 : 1;
                 
                 this.energy += (this.energyRegenRate * regenMultiplier * deltaTime) / 1000;
                 if (this.energy > this.maxEnergy) {

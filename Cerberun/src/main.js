@@ -156,15 +156,66 @@ window.addEventListener('load', function(){
     const usernameInput = document.getElementById('usernameInput');
     const gameOverLeaderboardButton = document.getElementById('gameOverLeaderboardButton');
     
+    // Button sound elements
+    const buttonClickSound = document.getElementById('buttonClickSound');
+    const buttonHoverSound = document.getElementById('buttonHoverSound');
+    
     // Initialize leaderboard manager
     const leaderboardManager = new LeaderboardManager();
     
     // Track where leaderboard was opened from
-    let leaderboardOpenedFrom = 'start'; // 'start' or 'gameOver'
+    let leaderboardOpenedFrom = 'start'; 
+    
+    // Button Sound Functions
+    function playButtonHoverSound() {
+        if (soundEnabled && buttonHoverSound) {
+            try {
+                buttonHoverSound.currentTime = 0; // Reset to start
+                buttonHoverSound.volume = 0.8;
+                const playPromise = buttonHoverSound.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => {});
+                }
+            } catch (error) {
+                // Silent error handling
+            }
+        }
+    }
+    
+    function playButtonClickSound() {
+        if (soundEnabled && buttonClickSound) {
+            try {
+                buttonClickSound.currentTime = 0; // Reset to start
+                buttonClickSound.volume = 0.8;
+                const playPromise = buttonClickSound.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => {});
+                }
+            } catch (error) {
+                // Silent error handling
+            }
+        }
+    }
+    
+    // Function to add sound effects to buttons
+    function addButtonSounds(button) {
+        if (button) {
+            button.addEventListener('mouseenter', playButtonHoverSound);
+            button.addEventListener('click', playButtonClickSound);
+        }
+    }
+    
+    // Function to add sound effects to toggle switches
+    function addToggleSounds(toggle) {
+        if (toggle) {
+            toggle.addEventListener('mouseenter', playButtonHoverSound);
+            toggle.addEventListener('click', playButtonClickSound);
+        }
+    } 
     
     // Loading Screen Logic
     function startLoadingSequence() {
-        inject(); // Initialize Vercel Analytics
+        inject(); 
         let progress = 0;
         const loadingDuration = 5000; 
         const updateInterval = 50; 
@@ -183,8 +234,8 @@ window.addEventListener('load', function(){
                         loadingScreen.style.display = 'none';
                         startModal.classList.remove('hidden');
                         initializeAudio();
-                    }, 500); // Wait for fade out transition
-                }, 500); // Small delay before starting fade out
+                    }, 500); 
+                }, 500); 
             }
         }, updateInterval);
     }
@@ -217,7 +268,7 @@ window.addEventListener('load', function(){
         
         if (playPromise !== undefined) {
             playPromise.catch(e => {
-                console.log('Autoplay prevented, music will start on user interaction');
+                // Silent error handling for autoplay prevention
             });
         }
     }
@@ -378,6 +429,31 @@ window.addEventListener('load', function(){
     if (savedUsername) {
         usernameInput.value = savedUsername;
     }
+    
+    // Apply button sound effects to all buttons and toggles
+    function initializeButtonSounds() {
+        addButtonSounds(startButton);
+        addButtonSounds(playAgainButton);
+        addButtonSounds(leaderboardButton);
+        addButtonSounds(gameOverLeaderboardButton);
+        addButtonSounds(closeLeaderboardButton);
+        addButtonSounds(continueButton);
+        addButtonSounds(restartButton);
+        
+        // Add sound effects to toggle switches
+        addToggleSounds(musicToggle);
+        addToggleSounds(soundToggle);
+        
+        // Add sound effect to username input focus
+        if (usernameInput) {
+            usernameInput.addEventListener('focus', function() {
+                playButtonHoverSound();
+            });
+        }
+    }
+    
+    // Initialize button sounds after a short delay to ensure audio elements are loaded
+    setTimeout(initializeButtonSounds, 100);
     
     function restartGame() {
         if (game) {

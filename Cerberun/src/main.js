@@ -29,6 +29,11 @@ class LeaderboardManager {
     
     async checkFirebaseConnection() {
         try {
+            // Wait for Firebase to be initialized
+            if (window.firebaseInitPromise) {
+                await window.firebaseInitPromise;
+            }
+            
             if (!window.db) {
                 console.log('Firebase db not available yet');
                 this.firebaseReady = false;
@@ -47,6 +52,11 @@ class LeaderboardManager {
     
     async getLeaderboard() {
         try {
+            // Wait for Firebase initialization first
+            if (window.firebaseInitPromise) {
+                await window.firebaseInitPromise;
+            }
+            
             // Check Firebase connection first
             if (!this.isOnline || !this.firebaseReady) {
                 if (!window.db) {
@@ -62,7 +72,7 @@ class LeaderboardManager {
                 }
             }
 
-            const snapshot = await db.collection(this.collectionName)
+            const snapshot = await window.db.collection(this.collectionName)
                 .orderBy('score', 'desc')
                 .limit(this.maxEntries)
                 .get();
@@ -114,6 +124,11 @@ class LeaderboardManager {
         };
         
         try {
+            // Wait for Firebase initialization first
+            if (window.firebaseInitPromise) {
+                await window.firebaseInitPromise;
+            }
+            
             // Check Firebase connection first
             if (!this.isOnline || !this.firebaseReady) {
                 if (!window.db) {
@@ -130,7 +145,7 @@ class LeaderboardManager {
             }
 
             // Add to Firestore
-            const docRef = await db.collection(this.collectionName).add(newEntry);
+            const docRef = await window.db.collection(this.collectionName).add(newEntry);
             
             // Get updated leaderboard to find rank
             const leaderboard = await this.getLeaderboard();
@@ -179,13 +194,13 @@ class LeaderboardManager {
     async cleanupOldEntries() {
         try {
             // Get all entries ordered by score
-            const snapshot = await db.collection(this.collectionName)
+            const snapshot = await window.db.collection(this.collectionName)
                 .orderBy('score', 'desc')
                 .get();
             
             // If we have more than maxEntries, delete the excess
             if (snapshot.size > this.maxEntries) {
-                const batch = db.batch();
+                const batch = window.db.batch();
                 const docs = snapshot.docs;
                 
                 // Delete entries beyond maxEntries (keep only top entries)
@@ -215,8 +230,8 @@ class LeaderboardManager {
     
     async clearLeaderboard() {
         try {
-            const batch = db.batch();
-            const snapshot = await db.collection(this.collectionName).get();
+            const batch = window.db.batch();
+            const snapshot = await window.db.collection(this.collectionName).get();
             
             snapshot.forEach(doc => {
                 batch.delete(doc.ref);
@@ -386,6 +401,11 @@ window.addEventListener('load', function(){
     
     // Initialize leaderboard manager
     const leaderboardManager = new LeaderboardManager();
+    
+    // Give Firebase a moment to initialize before checking connection
+    setTimeout(() => {
+        leaderboardManager.checkFirebaseConnection();
+    }, 1000);
     
     // Track where leaderboard was opened from
     let leaderboardOpenedFrom = 'start'; 

@@ -11,22 +11,57 @@ const firebaseConfig = {
     measurementId: "G-3Y1Y88EKZP"
 };
 
+// Global flag to track Firebase initialization
+window.firebaseInitialized = false;
+window.firebaseInitPromise = null;
+
 // Debug: Log Firebase initialization
 console.log('Initializing Firebase with project:', firebaseConfig.projectId);
 
-// Initialize Firebase
-try {
-    firebase.initializeApp(firebaseConfig);
-    console.log('Firebase initialized successfully');
-} catch (error) {
-    console.error('Firebase initialization failed:', error);
+// Function to initialize Firebase
+function initializeFirebase() {
+    return new Promise((resolve, reject) => {
+        try {
+            // Check if Firebase is already initialized
+            if (window.firebaseInitialized) {
+                resolve(window.db);
+                return;
+            }
+
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully');
+
+            // Initialize Firestore
+            const db = firebase.firestore();
+            
+            // Enable network for Firestore (important for Vercel)
+            db.enableNetwork().then(() => {
+                console.log('Firestore network enabled');
+                window.db = db;
+                window.firebaseInitialized = true;
+                resolve(db);
+            }).catch((error) => {
+                console.error('Failed to enable Firestore network:', error);
+                window.db = db; // Still set db even if network enable fails
+                window.firebaseInitialized = true;
+                resolve(db);
+            });
+
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            reject(error);
+        }
+    });
 }
 
-// Initialize Firestore and make it globally available
-try {
-    const db = firebase.firestore();
-    window.db = db; // Make db globally available
-    console.log('Firestore initialized successfully');
-} catch (error) {
-    console.error('Firestore initialization failed:', error);
-}
+// Initialize Firebase immediately
+window.firebaseInitPromise = initializeFirebase();
+
+// Also expose db globally for immediate access
+window.firebaseInitPromise.then((db) => {
+    window.db = db;
+    console.log('Firebase setup complete');
+}).catch((error) => {
+    console.error('Firebase setup failed:', error);
+});

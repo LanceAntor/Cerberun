@@ -12,7 +12,20 @@
 // appId: "1:377867420913:web:eb982b90fcc2cb835cd550"
 // measurementId: "G-3Y1Y88EKZP"
 
-export const firebaseConfig = {
+// Production configuration (fallback when config.js is not available)
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
+export const firebaseConfig = isProduction ? {
+    // Production Firebase configuration for Cerberun
+    apiKey: "AIzaSyCYazXoZnMeNYFwOydpqpOVIF1CS4eHgz4",
+    authDomain: "cerberun-leaderboard.firebaseapp.com",
+    projectId: "cerberun-leaderboard",
+    storageBucket: "cerberun-leaderboard.firebasestorage.app",
+    messagingSenderId: "377867420913",
+    appId: "1:377867420913:web:eb982b90fcc2cb835cd550",
+    measurementId: "G-3Y1Y88EKZP"
+} : {
+    // Template configuration for local development
     apiKey: "YOUR_FIREBASE_API_KEY", // Replace with your Firebase API key
     authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
     projectId: "YOUR_PROJECT_ID",
@@ -148,4 +161,4 @@ export function setupFirebase() {
             }
         });
     };
-} // Make db globally available
+}

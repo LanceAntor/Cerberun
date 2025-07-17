@@ -5,7 +5,7 @@ import { FlyingEnemy, GroundEnemy, ClimbingEnemy, SmallSpiderEnemy, ZombieEnemy,
 import { UI } from './UI.js';
 import { CollectibleManager, Clock, Heart } from './collectibles.js';
 import { inject } from "@vercel/analytics";
-import { setupFirebase } from './config.js';
+import { setupFirebase } from './config.template.js';
 
 // Initialize Firebase as soon as possible
 setupFirebase();

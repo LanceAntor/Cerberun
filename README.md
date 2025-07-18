@@ -4,16 +4,19 @@ Cerberun is a fast-paced action platformer where players dodge enemies, collect 
 
 ## Visual Demo
 
-### Home Screen
-![Home Screen Screenshot](static/cerberun_screenshots/homepage.jpg)
+### Loading Screen
+![Loading Sreen](../Cerberun/Cerberun/src/assets/screenshot/loadiing_screen.png)
+*Cerberun loading screen*
+
+![Home Screen Screenshot](../Cerberun/Cerberun/src/assets/screenshot/menu.png)
 *Cerberun home screen with leaderboard and game start options*
 
 ### Gameplay
-![Gameplay Screenshot](static/cerberun_screenshots/gameplay.jpg)
+![Gameplay Screenshot](../Cerberun/Cerberun/src/assets/screenshot/gameplay.png)
 *In-game action showing player dodging enemies and collecting hearts*
 
 ### Leaderboard
-![Leaderboard Screenshot](static/cerberun_screenshots/leaderboard.jpg)
+![Leaderboard Screenshot](../Cerberun/Cerberun/src/assets/screenshot/leaderboard.png)
 *Global leaderboard with online scores and player rankings*
 
 ## Features
